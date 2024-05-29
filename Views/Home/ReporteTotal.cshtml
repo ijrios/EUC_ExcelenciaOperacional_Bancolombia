@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - codingnepalweb.com -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+    <link href="~/Content/StyleTris.css" rel="stylesheet" />
+
+    <title>Excelencia Operacional - Consultas</title>
+</head>
+<body>
+    <div class="container">
+        <header>Excelencia Operacional</header>
+        <form action="#">
+            <div class="form first">
+                <div class="details personal">
+                    <span class="title">Reporte total de errores por usuario</span>
+                    <div class="fields">
+                        <div class="input-field">
+                            <label>Fecha inicial</label>
+                            <input type="date" id="fechaini" required>
+                        </div>
+                        <div class="input-field">
+                            <label>Fecha final</label>
+                            <input type="date" id="fechafin" required>
+                        </div>
+                        <div class="input-field">
+                            <label>Usuario</label>
+                            <input type="text" id="usariored" required>
+                        </div>
+                        <div class="findBtn" style="margin-right: 10px">
+                            <button class="findBtn" style="width: 30px; margin-top: 37px; ">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="details ID">
+                    <div class="fields">
+                        <div class="container">
+                            <table class="table table-bordered table-striped dataTable" id='tbllist' style="position: center">
+                                <thead class="bg-dark text-white">
+                                    <tr>
+                                        <td>Usuario</td>
+                                        <td>Puntos totales</td>
+                                        <td>Porcentaje error</td>
+                                        <td>Acción</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="buttons" style="text-align: center;">
+                            <button class="nextBtn" id="btnCerrarSesion" style="width: 30px; margin-top: 18px;">
+                                <span class="btnText"></span>
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // Manejar el clic del botón de cerrar sesión
+            $('#btnCerrarSesion').click(function () {
+                // Redirigir al usuario a la acción de cerrar sesión en el controlador
+                window.location.href = '/Home/Asesores';
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Inicializa la tabla vacía
+            $('#tbllist').DataTable({
+                pageLength: 4,
+                lengthChange: false,
+                pagingType: 'simple_numbers'
+            });
+            // Realiza la solicitud AJAX para obtener los datos de UsuariosErrores
+            $.ajax({
+                url: '/Home/ObtenerError',
+                type: 'GET',
+                success: function (data) {
+                    if (data && data.length > 0) {
+                        $('#tbllist').DataTable().clear().destroy(); // Limpia y destruye la tabla actual
+                        $('#tbllist').DataTable({
+                            data: data,
+                            columns: [
+                                { data: 'Usuario' },
+                                { data: 'Errores' },
+                                { data: 'Porcentaje' },
+                                { // Columna de acción con botones de eliminar y editar
+                                    data: null,
+                                    defaultContent: `
+                                        <div style="display: inline-block; align-items: center;">
+                                            <button class="btn-delete" style="display: inline-block;  width: 1px; height: 1px; margin-right: 20px; margin-top:2px">
+                                                <i class="fas fa-trash" style="color: black;"></i>
+                                            </button>
+                                            <button class="btn-edit" style="display: inline-block; width: 1px; height: 1px;margin-top:2px">
+                                                <i class="fas fa-edit" style="color: black;"></i>
+                                            </button>
+                                        </div>`
+                                }
+                            ],
+                            pageLength: 3,
+                            lengthChange: false,
+                            pagingType: 'simple_numbers',
+                            initComplete: function () {
+                                // Lógica adicional después de inicializar la tabla (si es necesario)
+                            }
+                        });
+                    } else {
+                        console.log('No se encontraron datos');
+                    }
+                },
+                error: function (error) {
+                    console.log('Error:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
