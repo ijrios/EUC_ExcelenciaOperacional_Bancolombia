@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="~/Content/Style.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <center>
+            <img src="~/Content/img/logo.png" alt="Logo de la empresa" width="60" height="60">
+            <h1 style="color: white;">Excelencia Operacional</h1>
+            <h3 style="color: white;">¡Bienvenido, @ViewBag.WindowsUsername!</h3>
+
+            <div class="buttons">
+                <button id="btnRegistrar" class="nextBtn">
+                    <span class="btnText">Registrar</span>
+                    <i class="uil uil-navigator"></i>
+                </button>
+                <button id="btnConsultar" class="sumbit">
+                    <span class="btnText">Consultar</span>
+                    <i class="uil uil-navigator"></i>
+                </button>
+                <button id="btnAdministrar" class="nextBtn">
+                    <span class="btnText">Admin</span>
+                    <i class="uil uil-navigator"></i>
+                </button>
+                <button id="btnInformes" class="nextBtn">
+                    <span class="btnText">Informes</span>
+                    <i class="uil uil-navigator"></i>
+                </button>
+            </div>
+        </center>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/Scripts/login.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Manejar el clic en el botón "Registrar"
+            $("#btnRegistrar").click(function () {
+                // Redirigir a la página deseada
+                window.location.href = '/Home/Registro';
+
+            });
+
+           var mensajeRechazo = '@Request.QueryString["mensajeRechazo"]';
+
+           if (mensajeRechazo) {
+              Swal.fire({
+                   icon: 'Error',
+                   title: 'Sin autorización!',
+                   text: mensajeRechazo,
+                   confirmButtonText: 'OK'
+               });
+            }
+
+            // Manejar el clic en el botón "Consultar"
+            $("#btnConsultar").click(function () {
+                // Redirigir a la página deseada
+                window.location.href = '/Home/Consultas';
+            });
+
+            // Manejar el clic en el botón "Administrar"
+            $("#btnAdministrar").click(function () {
+                // Redirigir a la página deseada
+                window.location.href ='/Home/Administrador';
+            });
+
+            // Manejar el clic en el botón "Administrar"
+            $("#btnInformes").click(function () {
+                // Redirigir a la página deseada
+                window.location.href = '/Home/Informes';
+            });
+        });
+    </script>
+
+    <script>
+
+    </script>
+</body>
+</html>
