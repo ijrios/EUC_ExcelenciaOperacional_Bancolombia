@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="~/Content/Style.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <center>
+            <img src="~/Content/img/logo.png" alt="Logo de la empresa" width="60" height="60">
+            <h1 style="color: white;">Vista de Informes</h1>
+            <h3 style="color: white;">¡Hola de nuevo, @ViewBag.WindowsUsername!</h3>
+
+            <div class="buttons">
+                <button id="btnInformeTipo" class="nextBtn">
+                    <span class="btnText">General</span>
+                    <i class="uil uil-navigator"></i>
+                </button>
+                <button id="btnConsultar" class="nextBtn">
+                    <span class="btnText">Asesores</span>
+                    <i class="uil uil-navigator"></i>
+                </button>
+                <button id="btnInformes" class="sumbit">
+                    <span class="btnText">Pérdidas</span>
+                    <i class="uil uil-navigator"></i>
+                </button>
+                <button id="btnAdministrar" class="nextBtn">
+                    <span class="btnText">Alertas</span>
+                    <i class="uil uil-navigator"></i>
+                </button>
+                <div class="findBtn" style="margin-right: 10px">
+                    <button class="findBtn" id="btnAtras" style="width: 30px; margin-top: 20px; ">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+        </center>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/Scripts/login.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Manejar el clic en el botón "Registrar"
+            $("#btnAtras").click(function () {
+                // Redirigir a la página deseada
+                window.location.href = '/Home/Index';
+
+            });
+
+
+            $("#btnInformeTipo").click(function () {
+                window.location.href = '/Home/AreasInfo';
+            });
+
+            $("#btnConsultar").click(function () {
+                window.location.href = '/Home/Asesores';
+            });
+
+            $("#btnInformes").click(function () {
+                window.location.href ='/Home/Perdidas';
+            });
+
+            $("#btnAdministrar").click(function () {
+
+
+                $.ajax({
+                    url: '/Home/EnviarCorreos',
+                    type: 'POST',
+                    success: function (response) {
+                        console.log(response);
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Correo enviado!',
+                            text: 'El correo ha sido enviado correctamente.',
+                            confirmButtonText: 'OK'
+                        });
+                    },
+                    error: function (error) {
+                        console.log(error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al enviar correo',
+                            text: 'Ha ocurrido un error al intentar enviar el correo.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+
+
+                
+            });
+        });
+    </script>
+
+    <script>
+
+    </script>
+</body>
+</html>
