@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - codingnepalweb.com -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="~/Content/StyleDuo.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <title>Excelencia Operacional</title>
+</head>
+<body>
+    <div class="container">
+        <header>Excelencia Operacional</header>
+        <form action="#" id="formularioRegistro">
+            <div class="form first">
+                <div class="details personal">
+                    <span class="title">Información de la operación</span>
+                    <div class="fields">
+                        <div class="consecutivo-field">
+                            <label>Consecutivo CIB</label>
+                            <input type="number" id="consecutivo" name="Consecutivo" placeholder="Consecutivo completo" required>
+                        </div>
+                        <div class="deshabilitarBtn" style="margin-left:30px;">
+                            <button class="deshabilitarBtn" style="width: 30px; margin-top: 37px; ">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        <div class="findBtn" style="margin-right: 25px;">
+                            <button class="findBtn" id="botonfind" style="width: 30px; margin-top: 37px;">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="input-field" style="margin-right: 18px;">
+                            <label>Fecha</label>
+                            <input type="date" id="fecha" name="FechaOp" required>
+                        </div>
+                        <div class="input-field">
+                            <label>Nit</label>
+                            <input type="number" id="nit" name="Nit" placeholder="Ingrese el Nit" required>
+                        </div>
+                        <div class="valor-field">
+                            <label>Valor</label>
+                            <input type="number" id="valor" name="Valor" placeholder="Ingrese valor" step="0.01" pattern="\d+(\.\d{1,2})?" required>
+                        </div>
+                        <div class="moneda-field">
+                            <label>Moneda</label>
+                            <input type="text" id="moneda" name="Moneda" placeholder="Ingrese moneda" required>
+                        </div>
+                        <div class="input-field">
+                            <label>Nombre cliente</label>
+                            <input type="text" id="cliente" name="Cliente" placeholder="Ingrese nombre cliente" required>
+                        </div>
+                        <div class="input-field">
+                            <label>Responsable</label>
+                            <input type="text" id="responsable" name="Responsable" placeholder="Responsable reproceso" required>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="details ID">
+                    <span class="title">Información del reproceso</span>
+                    <div class="fields">
+
+                        <div class="input-field">
+                            <label>Producto y evento</label>
+                            <input type="text" id="producto" name="ProdEvento" placeholder="Tipo de evento" required>
+                        </div>
+
+                        <div class="input-field">
+                            <label>Area</label>
+                            <select id="area" name="Area" required>
+                                <option disabled selected>Selecciona el area</option>
+                                <option>Trade</option>
+                                <option>Cartera</option>
+                                <option>Balanza</option>
+                                <option>Par comercial - Compraventa</option>
+                                <option>Otros segmentos - Compraventa</option>
+                                <option>Swift</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Tipo error</label>
+                            <select id="tipoError" name="TipoError" required>
+                                <option disabled selected value="">Selecciona el error</option>
+                                <option value="Asignación">Asignación</option>
+                                <option value="Verificación">Verificación</option>
+                                <option value="Cumplimiento">Cumplimiento</option>
+                                <option value="Aprobación">Aprobación</option>
+                                <option value="Orientación">Orientación</option>
+                            </select>
+                        </div>
+                        <div class="valor-field">
+                            <label>Perdida económica</label>
+                            <select id="perdida" name="Perdida" required>
+                                <option disabled selected>Selecciona una opcíon</option>
+                                <option>Si</option>
+                                <option>No</option>
+                            </select>
+                        </div>
+
+                        <div class="moneda-field">
+                            <label>Tipo de impacto</label>
+                            <select id="impacto" name="Impacto" required>
+                                <option disabled selected>Selecciona una opcíon</option>
+                                <option>Operativo</option>
+                                <option>Cliente</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Causa reproceso</label>
+                            <select id="causa" name="Causa" onchange="fetchOptions()" required>
+                                <option disabled selected>Selecciona la causa</option>
+                                <!-- Dinamically filled options -->
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Descripción</label>
+                            <input type="text" id="descripcion" name="Descripcion" placeholder="Ingresa descripción de reproceso" required>
+                        </div>
+
+                    </div>
+                    <div class="buttons">
+                        <button class="nextBtn" id="btnCerrarSesion" style="width: 30px; margin-top: 18px;">
+                            <span class="btnText"></span>
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button class="sumbit" id="btnGuardarDatos">
+                            <span class="btnText">Guardar</span>
+                            <i class="uil uil-navigator"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Manejar el clic del botón de cerrar sesión
+            $('#btnCerrarSesion').click(function () {
+                // Redirigir al usuario a la acción de cerrar sesión en el controlador
+                window.location.href = '/Home/Index';
+            });
+
+            $('.deshabilitarBtn').click(function (event) {
+                event.preventDefault(); // Evita que se envíe el formulario
+
+                var valorConsecutivo = $('#consecutivo').val();
+                if (!isNaN(valorConsecutivo) && valorConsecutivo !== '') {
+                    $('#consecutivo').val(null);
+                }
+                $('#consecutivo').val('Genérico');
+                // Deshabilitar el campo
+                $('#consecutivo').prop('disabled', true);
+               
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Registro genérico sin consecutivo!',
+                    text: 'Bienvenido, puedes proceder a generar tu reproceso sin consecutivo',
+                    confirmButtonText: 'OK'
+                });
+
+               
+
+            });
+
+        });
+
+    </script>
+    
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const tipoErrorSelect = document.getElementById('tipoError');
+            if (tipoErrorSelect) {
+                tipoErrorSelect.addEventListener('change', function () {
+                    const chartType = tipoErrorSelect.value;
+                    fetchCausas(chartType);
+                });
+            }
+        });
+      
+        function fetchCausas(chartType) {
+            let url = '';
+            switch (chartType) {
+                case 'Asignación':
+                    url = '/Home/GetCausasAsignacion';
+                    break;
+                case 'Verificación':
+                    url = '/Home/GetCausasVerificacion';
+                    break;
+                case 'Cumplimiento':
+                    url = '/Home/GetCausasCumplimiento';
+                    break;
+                case 'Aprobacion':
+                    url = '/Home/GetCausasAprobacion';
+                    break;
+                case 'Orientacion':
+                    url = '/Home/GetCausasOrientacion';
+                    break;
+                default:
+                    console.log("Tipo de error no válido");
+                    return;
+            }
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (data) {
+                    const causaSelect = $('#causa');
+                    causaSelect.empty();  // Vaciar las opciones actuales
+                    causaSelect.append(new Option("Selecciona la causa", "", true, true));  // Agregar la opción por defecto
+                    data.forEach(function (causa) {
+                        causaSelect.append(new Option(causa.Causa, causa.Id));
+                    });
+                },
+                error: function (error) {
+                    console.log("Error fetching causas:", error);
+                }
+            });
+        }
+       
+    </script>
+    <script>
+        $(document).ready(function () {
+
+            // Función para el botón de búsqueda
+            $('.findBtn').click(function (e) {
+                e.preventDefault(); 
+                var consecutivo = $('#consecutivo').val();
+
+                var fecha = consecutivo.substring(0, 8); // Los primeros 8 caracteres representan la fecha
+                var code = consecutivo.substring(8, 11); // Los caracteres del 9 al 11 representan el código
+                var consecutivofinal = consecutivo.substring(11); // El resto representa el consecutivo final
+
+                fecha = fecha.replace(/-/g, ''); // Eliminar los guione
+
+
+
+                $.ajax({
+                    url: '/Home/Buscar',
+                    type: 'POST',
+                    data: { consecutivo: consecutivofinal, fecha, code },
+                    success: function (data) {
+                        // Aquí puedes manejar los datos recibidos y mostrarlos en los campos correspondientes del formulario
+                        // Por ejemplo:
+                        if (data === null || data.length === 0) {
+                            console.log(data); // Verifica los datos recibidos en la consola del navegador
+                            Swal.fire({
+                                icon: 'Error',
+                                title: '¡Datos no Encontrados!',
+                                text: 'Los datos se no han encontrado correctamente, no puede seguir con la operación a menos que asigne 0000 en el consecutivo.',
+                                confirmButtonColor: '#9820EC',
+                                cancelButtonColor: '#7900D3',
+                                confirmButtonText: 'OK'
+                            });
+                        } else {
+                            console.log(data); // Verifica los datos recibidos en la consola del navegador
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Encontrados!',
+                                text: 'Los datos se han encontrado correctamente.',
+                                confirmButtonColor: '#9820EC',
+                                cancelButtonColor: '#7900D3',
+                                confirmButtonText: 'OK'
+                            });
+
+                            var moneda = '';
+                            switch (data[0].MONEDA) {
+                                case 1:
+                                    moneda = 'USD'
+                                    break;
+                                case 3:
+                                    moneda = 'GBP'
+                                    break;
+                                case 5:
+                                    moneda = 'CHF'
+                                    break;
+                                case 7:
+                                    moneda = 'SEK'
+                                    break;
+                                case 8:
+                                    moneda = 'DKK'
+                                    break;
+                                case 11:
+                                    moneda = 'JPY'
+                                    break;
+                                case 13:
+                                    moneda = 'VEB'
+                                    break;
+                                case 14:
+                                    moneda = 'ATS'
+                                    break;
+                                case 15:
+                                    moneda = 'CAD'
+                                    break;
+                                case 16:
+                                    moneda = 'EUR'
+                                    break;
+                                case 17:
+                                    moneda = 'PTE'
+                                    break;
+                                case 18:
+                                    moneda = 'AUD'
+                                    break;
+                                case 19:
+                                    moneda = 'MXN'
+                                    break;
+                                case 21:
+                                    moneda = 'NZD'
+                                    break;
+                                case 22:
+                                    moneda = 'BRL'
+                                    break;
+                            }
+                            $('#nit').val(data[0].NIT);
+                            $('#valor').val(data[0].VALOR);
+                            $('#moneda').val(moneda);
+                            $('#cliente').val(data[0].NOMBRE);
+                            $('#producto').val(data[0].PRODUCTO + "-" + data[0].EVENTO);
+
+                            var fecha = (data[0].FECREC);
+                            fecha = fecha.toString()
+
+                            // Separar la cadena en año, mes y día
+                            var anio = fecha.slice(0, 4);
+                            var mes = fecha.slice(4, 6);
+                            var dia = fecha.slice(6, 8);
+
+                            // Construir la cadena de fecha en formato yyyy-MM-dd
+                            var fechaFormateada = anio + '-' + mes + '-' + dia;
+
+                            // Asignar la fecha formateada al campo de fecha en el formulario
+                            $('#fecha').val(fechaFormateada);
+                        }
+
+
+
+                    },
+                    error: function () {
+
+                        if (consecutivo === "null") {
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Registro genérico sin consecutivo!',
+                                text: 'Bienvenido, puedes proceder a generar tu reproceso sin consecutivo',
+                                confirmButtonText: 'OK'
+                            });
+
+
+                        } else if (consecutivo !== null) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '¡Consecutivo no existe!',
+                                text: 'Los datos no se han encontrado correctamente, no puedes seguir con el registro del reproceso.',
+                                confirmButtonText: 'OK'
+                            });
+                            $('#consecutivo').val(null);
+                            // Deshabilitar todas las casillas de entrada en el formulario
+                            $('form input').prop('disabled', true);
+                            $('form select').prop('disabled', true);
+                        }
+
+                    }
+                });
+            });
+
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#btnGuardarDatos').click(function () {
+                // Obtener los valores de los campos del formulario
+                var consecutivo = $('#consecutivo').val();
+
+
+                if (consecutivo === null) {
+                     var usuario = "@ViewBag.WindowsUsername";
+                var fechaOp = $('#fecha').val().toString();
+                var fechaReg = obtenerFechaActual().toString();
+                var consecutivo = "000000000000000";
+                var nit = $('#nit').val().toString();
+                var moneda = $('#moneda').val();
+                var valor = parseFloat($('#valor').val());
+                var cliente = $('#cliente').val().toString();
+                var producto = $('#producto').val().toString();
+                var responsable = $('#responsable').val().toString();
+                var usuarioReproceso =usuario.toString();
+                var perdida = $('#perdida').val().toString();
+                var impacto = $('#impacto').val().toString();
+                var causa = $('#causa').val().toString();
+                var descripcion = $('#descripcion').val().toString();
+                var area = $('#area').val().toString();
+                var tipoError = $('#tipoError').val().toString();
+                // Obtener el mes numérico y convertirlo al nombre del mes
+                var mesNumerico = obtenerMesNumerico(fechaOp);
+                var nombreMes = obtenerNombreMes(mesNumerico);
+
+
+                // Enviar los datos al controlador mediante AJAX
+                $.ajax({
+                    url: '/Home/InsertarReproceso',
+                    type: 'POST',
+                    data: {
+                        FechaOp: fechaOp,
+                        FechaReg: fechaReg,
+                        Consecutivo: consecutivo,
+                        Nit: nit,
+                        Moneda: moneda,
+                        Valor: valor,
+                        Cliente: cliente,
+                        ProdEvento: producto,
+                        Responsable: responsable,
+                        UsuarioReproceso: usuarioReproceso,
+                        Perdida: perdida,
+                        Impacto: impacto,
+                        Causa: causa,
+                        Descripcion: descripcion,
+                        Area: area,
+                        TipoError: tipoError,
+                        Mes: mes
+                    },
+                    success: function (response) {
+
+                        if (response.success === true) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Datos guardados!',
+                                text: 'Los datos se han guardado correctamente, en la vista de consultas lo puede visualizar',
+                                confirmButtonColor: '#9820EC',
+                                cancelButtonColor: '#7900D3',
+                                confirmButtonText: 'OK'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Datos guardados!',
+                                text: 'Los datos se han guardado correctamente, en la vista de consultas lo puede visualizar',
+                                confirmButtonColor: '#9820EC',
+                                cancelButtonColor: '#7900D3',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function (error) {
+                        // Manejar errores de AJAX si es necesario
+                        console.log(error);
+                        Swal.fire({
+                            icon: 'Error',
+                            title: '¡Datos no guardados!',
+                            confirmButtonColor: '#9820EC',
+                            cancelButtonColor: '#7900D3',
+                            text: error,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+                } else {
+
+                var usuario = "@ViewBag.WindowsUsername";
+                var fechaOp = $('#fecha').val().toString();
+                var fechaReg = obtenerFechaActual().toString();
+                var consecutivo = $('#consecutivo').val().toString();
+                var nit = $('#nit').val().toString();
+                var moneda = $('#moneda').val();
+                var valor = parseFloat($('#valor').val());
+                var cliente = $('#cliente').val().toString();
+                var producto = $('#producto').val().toString();
+                var responsable = $('#responsable').val().toString();
+                var usuarioReproceso =usuario.toString();
+                var perdida = $('#perdida').val().toString();
+                var impacto = $('#impacto').val().toString();
+                var causa = $('#causa').val().toString();
+                var descripcion = $('#descripcion').val().toString();
+                var area = $('#area').val().toString();
+                var tipoError = $('#tipoError').val().toString();
+                // Obtener el mes numérico y convertirlo al nombre del mes
+                var mesNumerico = obtenerMesNumerico(fechaOp);
+                var nombreMes = obtenerNombreMes(mesNumerico);
+
+
+                // Enviar los datos al controlador mediante AJAX
+                $.ajax({
+                    url: '/Home/InsertarReproceso',
+                    type: 'POST',
+                    data: {
+                        FechaOp: fechaOp,
+                        FechaReg: fechaReg,
+                        Consecutivo: consecutivo,
+                        Nit: nit,
+                        Moneda: moneda,
+                        Valor: valor,
+                        Cliente: cliente,
+                        ProdEvento: producto,
+                        Responsable: responsable,
+                        UsuarioReproceso: usuarioReproceso,
+                        Perdida: perdida,
+                        Impacto: impacto,
+                        Causa: causa,
+                        Descripcion: descripcion,
+                        Area: area,
+                        TipoError: tipoError,
+                        Mes: nombreMes
+                    },
+                    success: function (response) {
+                        // Manejar la respuesta del servidor si es necesario
+                        console.log(response);
+                        if (response.success  === true) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Datos guardados!',
+                                text: 'Los datos se han guardado correctamente, en la vista de consultas lo puede visualizar',
+                                confirmButtonColor: '#9820EC',
+                                cancelButtonColor: '#7900D3',
+                                confirmButtonText: 'OK'
+                            });
+                        } else{
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Datos guardados!',
+                                text: 'Los datos se han guardado correctamente, en la vista de consultas lo puede visualizar',
+                                confirmButtonColor: '#9820EC',
+                                cancelButtonColor: '#7900D3',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function (error) {
+                        // Manejar errores de AJAX si es necesario
+                        console.log(error);
+                        Swal.fire({
+                            icon: 'Error',
+                            title: '¡Datos no guardados!',
+                            confirmButtonColor: '#9820EC',
+                            cancelButtonColor: '#7900D3',
+                            text: error,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+                }
+
+            });
+        });
+
+        // Función para obtener la fecha actual en el formato deseado
+        function obtenerFechaActual() {
+            var fecha = new Date();
+            var year = fecha.getFullYear();
+            var month = ("0" + (fecha.getMonth() + 1)).slice(-2);
+            var day = ("0" + fecha.getDate()).slice(-2);
+            return year + "-" + month + "-" + day;
+        }
+
+        // Función para obtener el mes numérico de una fecha en formato YYYY-MM-DD
+        function obtenerMesNumerico(fecha) {
+            var mes = fecha.substring(5, 7); // Extraer el mes (MM)
+            return parseInt(mes, 10); // Convertir a número entero
+        }
+
+        // Función para obtener el nombre del mes a partir de su número (1 a 12)
+        function obtenerNombreMes(numeroMes) {
+            var nombresMeses = [
+                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            ];
+            return nombresMeses[numeroMes - 1]; // El índice comienza en 0, por eso se resta 1
+        }
+
+    </script>
+</body>
+</html>
