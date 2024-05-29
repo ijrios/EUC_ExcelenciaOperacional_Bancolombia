@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - codingnepalweb.com -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+    <link href="~/Content/StyleTris.css" rel="stylesheet" />
+
+    <title>Excelencia Operacional - Consultas</title>
+</head>
+<body>
+    <div class="container">
+        <header>Excelencia Operacional</header>
+        <form action="#" novalidate>
+            <div class="form first">
+                <div class="details personal">
+                    <span class="title">Informes de pérdidas</span>
+                    <div class="fields">
+                        <div class="input-field">
+                            <label>Tipo de pérdida</label>
+                            <select id="tipo" required>
+                                <option disabled selected>Selecciona el informe</option>
+                                <option value="eco">Perdida económica</option>
+                                <option value="noeco">Perdida no economica</option>
+                            </select>
+                        </div>
+                        <div class="findBtn" style="margin-right: 10px">
+                            <button class="findBtn" id="btnConsulta"  type="button"  style="width: 30px; margin-top: 37px; ">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="details ID">
+                    <div class="fields">
+                        <div class="container">
+                            <table class="table table-bordered table-striped dataTable" id='tbllist'>
+                                <thead class="bg-dark text-white">
+                                    <tr>
+                                        <td>Fecha Op</td>
+                                        <td>Fecha Reg</td>
+                                        <td>Consecutivo</td>
+                                        <td>Moneda</td>
+                                        <td>Valor</td>
+                                        <td>Nit</td>
+                                        <td>Acción</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="buttons">
+                            <button id="btnCerrarSesion" type="button" style="width: 30px; margin-top: 18px;">
+                                <span class="btnText"></span>
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button id="btnExportarExcel">
+                                <span class="btnText"> Exportar</span>
+                                <i class="uil uil-navigator"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            $('#tbllist').DataTable();
+
+
+            $('#btnConsulta').click(function () {
+
+                const chartType = document.getElementById("tipo").value;
+
+                if (chartType === "eco") {
+                    $.ajax({
+                        url: '/Home/ObtenerReprocesosPerdidas',
+                        type: 'GET',
+                        success: function (data) {
+                            if (data && data.length > 0) {
+                                $('#tbllist').DataTable().clear().destroy(); // Limpia y destruye la tabla actual
+                                $('#tbllist').DataTable({
+                                    data: data,
+                                    columns: [
+                                        { data: 'FechaOp' },
+                                        { data: 'FechaReg' },
+                                        { data: 'Consecutivo' },
+                                        { data: 'Moneda' },
+                                        { data: 'Valor' },
+                                        { data: 'Nit' },
+                                        { // Columna de acción con botón de eliminar
+                                            data: null,
+                                            defaultContent: `
+                  <div style="display: inline-block;align-items: center;">
+                    <button class="btn-delete" style="display: inline-block; width: 1px; height: 1px; margin-right: 20px; margin-top:2px">
+                      <i class="fas fa-trash" style="color: black;"></i>
+                    </button>
+                    <button class="btn-edit" style="display: inline-block; width: 1px; height: 1px;margin-top:2px">
+                      <i class="fas fa-edit" style="color: black;"></i>
+                    </button>
+                  </div>`
+                                        }
+                                    ],
+                                    pageLength: 3,
+                                    lengthChange: false,
+                                    pagingType: 'simple_numbers',
+                                    initComplete: function () {
+
+
+
+                                    }
+                                });
+
+                            } else {
+                                console.log('No se encontraron datos');
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
+                } else if (chartType === "noeco") {
+                    $.ajax({
+                        url: '/Home/ObtenerReprocesosNoPerdidas',
+                        type: 'GET',
+                        success: function (data) {
+                            if (data && data.length > 0) {
+                                $('#tbllist').DataTable().clear().destroy(); // Limpia y destruye la tabla actual
+                                $('#tbllist').DataTable({
+                                    data: data,
+                                    columns: [
+                                        { data: 'FechaOp' },
+                                        { data: 'FechaReg' },
+                                        { data: 'Consecutivo' },
+                                        { data: 'Moneda' },
+                                        { data: 'Valor' },
+                                        { data: 'Nit' },
+                                        { // Columna de acción con botón de eliminar
+                                            data: null,
+                                            defaultContent: `
+                  <div style="display: inline-block;align-items: center;">
+                    <button class="btn-delete" style="display: inline-block; width: 1px; height: 1px; margin-right: 20px; margin-top:2px">
+                      <i class="fas fa-trash" style="color: black;"></i>
+                    </button>
+                    <button class="btn-edit" style="display: inline-block; width: 1px; height: 1px;margin-top:2px">
+                      <i class="fas fa-edit" style="color: black;"></i>
+                    </button>
+                  </div>`
+                                        }
+                                    ],
+                                    pageLength: 3,
+                                    lengthChange: false,
+                                    pagingType: 'simple_numbers',
+                                    initComplete: function () {
+
+
+
+                                    }
+                                });
+
+                            } else {
+                                console.log('No se encontraron datos');
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        }
+                    });
+                }
+
+
+            });
+
+
+          
+
+        });
+
+        $('#tbllist tbody').on('click', 'tr', function (e) {
+            if (!$(e.target).hasClass('btn-delete') && !$(e.target).closest('.btn-delete').length && !$(e.target).hasClass('btn-edit') && !$(e.target).closest('.btn-edit').length) {
+                var rowData = $('#tbllist').DataTable().row(this).data();
+                // Aquí puedes usar rowData para mostrar todos los detalles en algún lugar
+                mostrarDetallesCompletos(rowData);
+            }
+
+        });
+
+
+        $('#btnExportarExcel').click(function () {
+            var tableData = $('#tbllist').DataTable().rows().data().toArray();
+
+            // Convertir los datos de la tabla a JSON
+            var jsonData = JSON.stringify(tableData);
+
+            // Realizar la solicitud AJAX para enviar el JSON al controlador
+            $.ajax({
+                url: '/Home/LlenarReprocesos',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ jsonData: jsonData }),
+                success: function (response) {
+                    if (response.success) {
+                        // Manejar la respuesta del servidor si es necesario
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Informe de perdidas generado!',
+                            html: 'Se ha gerado correctamente el informe',
+                            confirmButtonColor: '#9820EC',
+                            cancelButtonColor: '#7900D3',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function (error) {
+                    // Manejar errores de AJAX si es necesario
+                    console.log(error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: '¡Informe de perdidas no fue generado!',
+                        html: 'No se ha gerado correctamente el informe',
+                        confirmButtonColor: '#9820EC',
+                        cancelButtonColor: '#7900D3',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        });
+
+        function mostrarDetallesCompletos(detalle) {
+            // Construir una cadena HTML con los detalles
+            var detalleHtml = '<div style="font-size: 12px; text-align: left;">';
+            for (var key in detalle) {
+                if (detalle.hasOwnProperty(key)) {
+                    detalleHtml += '<div><strong>' + key + ':</strong> ' + detalle[key] + '</div>';
+                }
+            }
+            detalleHtml += '</div>';
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Datos de reproceso!',
+                html: detalleHtml,
+                confirmButtonColor: '#9820EC',
+                cancelButtonColor: '#7900D3',
+                confirmButtonText: 'OK'
+            });
+            console.log(detalle); // Ejemplo de impresión en consola
+        }
+
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('btnCerrarSesion').addEventListener('click', function () {
+                window.location.href = '/Home/Informes';
+            });
+
+        });
+
+        const form = document.querySelector("form"),
+            backBtn = form.querySelector(".backBtn");
+        backBtn.addEventListener("click", () => form.classList.remove('secActive'));
+
+    </script>
+
+</body>
+</html>
