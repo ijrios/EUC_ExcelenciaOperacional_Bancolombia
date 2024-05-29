@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+    <link href="~/Content/StyleTris.css" rel="stylesheet" />
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <title></title>
+    <style>
+
+        .dato .serie {
+            width: 70%;
+            margin-right: 15px;
+        }
+
+        .dato .valor {
+            width: 20%;
+        }
+
+
+        .right {
+            float: left;
+            border: 1px solid #fff;
+            max-width: 800px;
+            margin-left: 15px;
+        }
+
+        .input-field {
+            display: inline-block;
+            margin-right: 900px; /* Ajusta según sea necesario */
+        }
+
+        #piechart {
+            width: 700px;
+            height: 260px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>Excelencia Operacional</header>
+        <form action="#" novalidate>
+            <div class="form first">
+                <div class="details personal">
+                    <span class="title">Gráficos e informes</span>
+                    <div class="fields">
+                    
+                        <div class="input-field">
+                            <label>Tipo</label>
+                            <select id="tipo" style="margin-right: -100px">
+                                <option disabled selected>Selecciona el area</option>
+                                <option value="circular">Gráfico Circular - Tipo Error</option>
+                                <option value="columna">Gráfico de Columnas - Tipo Error</option>
+                                <option value="circular">Gráfico Circular - Error Area</option>
+                                <option value="columna">Gráfico de Columnas - Error  Area</option>
+                            </select>
+                        </div>
+                            <div class="input-field">
+                            <label>Area</label>
+                            <select id="area" style="margin-right: -100px">
+                                <option disabled selected>Selecciona el area</option>
+                                <option value="todas">Todas</option>
+                                <option value="trade">Trade</option>
+                                <option value="cartera">Cartera</option>
+                                <option value="balanza">Balanza</option>
+                                <option value="cv">Par comercial - Compraventa</option>
+                                <option value="ocv">Otros segmentos - Compraventa</option>
+                                <option value="swift">Swift</option>
+                            </select>
+                        </div>
+                        <div class="findBtn" style="margin-right: -100px">
+                            <button id="btnotro"  type="button" class="findBtn" style="width: 30px; margin-top: 37px; ">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                        </div>
+                        <div class="buttons" style="text-align: center;">
+                            <button class="nextBtn" type="button" id="btnCerrarSesion" style="width: 30px; margin-top: 37px;">
+                                <span class="btnText"></span>
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="details ID">
+                    <div class="fields">
+                        <div class="container">
+                            <div class="right">
+                                <div id="piechart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // Manejar el clic del botón de cerrar sesión
+            $('#btnCerrarSesion').click(function () {
+                // Redirigir al usuario a la acción de cerrar sesión en el controlador
+                window.location.href = '/Home/Index';
+            });
+
+            $('#btnotro').click(function () {
+                // Redirigir al usuario a la acción de cerrar sesión en el controlador
+                window.location.href = '/Home/ImpactoInfo';
+            });
+        });
+    </script>
+    <script>
+
+       
+        //Función que cargar el gràfico de Google
+        function cargarGrafico(code) {
+            // Cargo el gráfico de Google
+            google.charts.load('current', {
+                'packages': ['corechart']
+            });
+            google.charts.setOnLoadCallback(drawChart(code));
+        }
+
+        let chartTypeDuo = null;
+
+        document.getElementById("area").addEventListener("change", function () {
+            chartTypeDuo = document.getElementById("area").value;
+            console.log("Valor de chartType:", chartTypeDuo);
+
+            if (chartTypeDuo === "todas") {
+                cargarGrafico(7);
+            } else if (chartTypeDuo === "trade") {
+                cargarGrafico(1);
+            } else if (chartTypeDuo === "cartera") {
+                cargarGrafico(2);
+            } else if (chartTypeDuo === "balanza") {
+                cargarGrafico(3);
+            } else if (chartTypeDuo === "cv") {
+                cargarGrafico(4);
+            } else if (chartTypeDuo === "ocv") {
+                cargarGrafico(5);
+            } else if (chartTypeDuo === "swift") {
+                cargarGrafico(6);
+            }
+        });
+
+        document.getElementById("tipo").addEventListener("change", function () {
+            chartTypeTris = document.getElementById("tipo").value;
+            console.log("Valor de chartType:", chartTypeTris);
+
+            if (chartTypeTris === "todas") {
+                cargarGrafico(7);
+            } else if (chartTypeTris === "trade") {
+                cargarGrafico(1);
+            } else if (chartTypeTris === "cartera") {
+                cargarGrafico(2);
+            } else if (chartTypeTris === "balanza") {
+                cargarGrafico(3);
+            } 
+        });
+     
+        function drawChart(code) {
+            fetch(`/Home/ObtenerErrorTipo?code=${code}`)
+                .then(response => response.json())
+                .then(data => {
+                    const arregloDatos = [['Tipo', 'Errores']];
+                    data.forEach(item => {
+                        // Aseguramos que 'Errores' se convierte a número entero
+                        const errores = parseInt(item.Errores, 10);
+                        if (!isNaN(errores)) {
+                            arregloDatos.push([item.Tipo, errores]);
+                        }
+                    });
+
+                    const dataTable = google.visualization.arrayToDataTable(arregloDatos);
+
+                    const options = {
+                        width: 720,
+                        height: 260,
+                        colors: ['#6C3483', '#863AA5', '#B22BE9', '#D878FF', '#EAB5FF'] // Aquí defines los colores
+                    };
+
+                    const chartType = document.getElementById("tipo").value;
+                    let chart;
+                    if (chartType === "circular") {
+                        chart = new google.visualization.PieChart(document.getElementById('piechart'));
+                    } else {
+                        chart = new google.visualization.ColumnChart(document.getElementById('piechart'));
+                    }
+                    chart.draw(dataTable, options);
+                    Console.log("recibidos")
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+
+    </script>
+
+</body>
+</html>
