@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - codingnepalweb.com -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+    <link href="~/Content/StyleQuattuor.css" rel="stylesheet" />
+
+    <title>Excelencia Operacional - Consultas</title>
+    <style>
+        .fields {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .label {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            padding: 10px 20px;
+            text-align: center;
+            border: 1px solid #ffffff;
+            width: 140px;
+            margin: 0 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>Excelencia Operacional</header>
+        <form action="#" novalidate>
+            <div class="form first">
+                <div class="details personal">
+                    <span class="title">Top 10 errores</span>
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <div class="fields">
+                        <div class="label">joarios: 10</div>
+                        <div class="label">jaramos: 5</div>
+                        <div class="label">sebmoral: 5</div>
+                        <div class="label">josorio: 4</div>
+                        <div class="label">danilren: 4</div>
+                    </div>
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <!-- Segunda fila de errores -->
+                    <div class="fields">
+                        <div class="label">yurmun: 3</div>
+                        <div class="label">yrarang: 3</div>
+                        <div class="label">feoviedo: 2</div>
+                        <div class="label">jcabal: 2</div>
+                        <div class="label">cfeged: 1</div>
+                    </div>
+                    <div class="buttons" style="text-align: center;">
+                        <button id="btnCerrarSesion" type="button" style="width: 30px; margin-top: 18px;">
+                            <span class="btnText"></span>
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button id="btnCerrarSesionDuo" type="button">
+                            <span class="btnText">Reporte Total</span>
+                        </button>
+                        <button id="btnEnviar" type="button">
+                            <span class="btnText">Enviar correos</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // Manejar el clic del botón de cerrar sesión
+            $('#btnCerrarSesionDuo').click(function () {
+                // Redirigir al usuario a la acción de cerrar sesión en el controlador
+                window.location.href = '/Home/ReporteTotal';
+            });
+
+            $('#btnCerrarSesion').click(function () {
+                // Redirigir al usuario a la acción de cerrar sesión en el controlador
+                window.location.href = '/Home/Informes';
+            });
+
+
+            $('#btnCerrarSesion').click(function () {
+                // Redirigir al usuario a la acción de cerrar sesión en el controlador
+                window.location.href = '/Home/Informes';
+            });
+
+
+            
+
+        });
+
+
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('reporteTotal').addEventListener('click', function () {
+                window.location.href = '/Home/ReporteTotal';
+            });
+
+        });
+    </script>
+</body>
+</html>
