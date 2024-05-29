@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - codingnepalweb.com -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+    <link href="~/Content/StyleAdmin.css" rel="stylesheet" />
+
+    <title>Excelencia Operacional - Consultas</title>
+   
+</head>
+<body>
+    <div class="container">
+        <header>Excelencia Operacional</header>
+        <form action="#">
+            <div class="form first">
+                <div class="details personal">
+                    <span class="title">Administración de usuarios</span>
+                    <div class="fields">
+                        <div class="input-field">
+                            <label>Usuario</label>
+                            <input type="text" id="usuario" required>
+                        </div>
+                        <div class="input-field">
+                            <label>Correo</label>
+                            <input type="text" id="correo" required>
+                        </div>
+                        <div class="input-field">
+                            <label>Nombre</label>
+                            <input type="text" id="nombre" required>
+                        </div>
+                     
+                        <div class="input-field">
+                            <label>Perfil</label>
+                            <select id="perfil" required style="width: 140px;">
+                                <option disabled selected>Selecciona el area</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Ingreso, informes">Ingreso, informes</option>
+                                <option value="Ingreso, consultas">Ingreso, consultas</option>
+                                <option value="Ingreso, Consultas, Informes">Ingreso, Consultas, Informes</option>
+                                <option>Consultas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="details ID">
+                    <div class="fields">
+                        <div class="container">
+                            <table class="table table-bordered table-striped dataTable" id='tbllist'>
+                                <thead class="bg-dark text-white">
+                                    <tr>
+                                        <td>Usuario</td>
+                                        <td>Nombre</td>
+                                        <td>Correo</td>
+                                        <td>Perfil</td>
+                                        <td>Acción</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="input-field" style="display: none;">
+                            <label for="id">Id</label>
+                            <input type="text" id="id" name="id" required>
+                        </div>
+                        <div class="buttons" style="text-align: center;">
+                            <button class="nextBtn" type="button" id="btnCerrarSesion" style="width: 30px; margin-top: 18px;">
+                                <span class="btnText"></span>
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button class="editarall" type="button" id="btnRegistrarrDatos">
+                                <span class="btnText">  Registrar</span>
+                                <i class="uil uil-navigator"></i>
+                            </button>
+                            <button class="editarall" type="button" id="btnGuardarDatos">
+                                <span class="btnText">  Guardar</span>
+                                <i class="uil uil-navigator"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // Manejar el clic del botón de cerrar sesión
+            $('#btnCerrarSesion').click(function () {
+                // Redirigir al usuario a la acción de cerrar sesión en el controlador
+                window.location.href = '/Home/Index';
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#btnGuardarDatos').click(function () {
+                // Obtener los valores de los campos del formulario
+                var usuario = $('#usuario').val().toString();
+                var nombre = $('#nombre').val().toString();
+                var correo = $('#correo').val().toString();
+                var perfil = $('#perfil').val().toString();
+                var Id = $('#id').val();
+
+                // Enviar los datos al controlador mediante AJAX
+                $.ajax({
+                    url: '/Home/EditarUsuarios',
+                    type: 'POST',
+                    data: {
+                        Id: Id,
+                        Usuario: usuario,
+                        Nombre: nombre,
+                        Correo: correo,
+                        Perfil: perfil
+                    },
+                    success: function (response) {
+                        // Manejar la respuesta del servidor si es necesario
+                        console.log(response);
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Datos editados!',
+                            text: 'Los datos se han guardado correctamente, en la vista de consultas lo puede visualizar',
+                            confirmButtonText: 'OK'
+                        });
+                    },
+                    error: function (error) {
+                        // Manejar errores de AJAX si es necesario
+                        console.log(error);
+                        Swal.fire({
+                            icon: 'Error',
+                            title: '¡Datos no se han guardado!',
+                            text: error,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#btnRegistrarrDatos').click(function () {
+                // Obtener los valores de los campos del formulario
+                var usuario = $('#usuario').val().toString();
+                var nombre = $('#nombre').val().toString();
+                var correo = $('#correo').val().toString();
+                var perfil = $('#perfil').val().toString();
+                var perfilis = null;
+          
+
+                switch (perfil) {
+                    case "Administrador":
+                        perfilis = "1111";
+                        break;
+                    case "Ingreso, informes":
+                        perfilis = "1001";
+                        break;
+                    case "Ingreso, consultas":
+                        perfilis = "1100";
+                        break;
+                    case "Ingreso, Consultas, Informes":
+                        perfilis = "1101";
+                        break;
+                    case "Consultas":
+                        perfilis = "0100";
+                        break;
+                    default:
+                        perfilis = "0000";
+                }
+
+                // Enviar los datos al controlador mediante AJAX
+                $.ajax({
+                    url: '/Home/InsertarUsuarios',
+                    type: 'POST',
+                    data: {
+                        Usuario: usuario,
+                        Nombre: nombre,
+                        Correo: correo,
+                        Perfil: perfilis
+                    },
+                    success: function (response) {
+                        // Manejar la respuesta del servidor si es necesario
+                        if (response === true) {
+                            console.log(response);
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Datos guardados!',
+                                text: 'Los datos se han guardado correctamente, en la vista de consultas lo puede visualizar',
+                                confirmButtonText: 'OK'
+                            });
+
+                            ('#usuario').val("");
+                            $('#correo').val("");
+                            $('#nombre').val("");
+                        } 
+                        
+                      
+                    },
+                    error: function (error) {
+                        // Manejar errores de AJAX si es necesario
+                        console.log(error);
+                        Swal.fire({
+                            icon: 'Error',
+                            title: '¡Datos no se han guardado!',
+                            text: 'No se registró el usuario',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#tbllist').DataTable({
+                pageLength: 3,
+                lengthChange: false,
+                pagingType: 'simple_numbers'
+            });
+
+            $.ajax({
+                url: '/Home/ObtenerUsuario',
+                type: 'GET',
+                success: function (data) {
+                    if (data && data.length > 0) {
+                        $('#tbllist').DataTable().clear().destroy(); // Limpia y destruye la tabla actual
+                        $('#tbllist').DataTable({
+                            data: data,
+                            columns: [
+                                { data: 'Usuario' },
+                                { data: 'Nombre' },
+                                { data: 'Correo' },
+                                { data: 'Perfil' },
+                                { // Columna de acción con botones de eliminar y editar
+                                    data: null,
+                                    defaultContent: `
+                                                <div style="display: inline-block; align-items: center;">
+                                                    <button class="btn-delete" type="button" style="display: inline-block;  width: 1px; height: 1px; margin-right: 20px; margin-top:2px">
+                                                        <i class="fas fa-trash" style="color: black;"></i>
+                                                    </button>
+                                                    <button class="btn-edit"  type="button" style="display: inline-block; width: 1px; height: 1px;margin-top:2px">
+                                                        <i class="fas fa-edit" style="color: black;"></i>
+                                                    </button>
+                                                </div>`
+                                }
+                            ],
+                            pageLength: 3,
+                            lengthChange: false,
+                            pagingType: 'simple_numbers',
+                            initComplete: function () {
+
+                                $('#tbllist tbody').on('click', '.btn-delete', function () {
+                                    var data = $('#tbllist').DataTable().row($(this).parents('tr')).data();
+                                    var id = data.Id;
+
+                                    // Confirmación antes de eliminar
+                                    Swal.fire({
+                                        title: '¿Estás seguro?',
+                                        text: "¡No podrás revertir esto!",
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#9820EC',
+                                        cancelButtonColor: '#7900D3',
+                                        confirmButtonText: 'Sí, eliminarlo!'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            $.ajax({
+                                                url: '/Home/EliminarUsuario',
+                                                type: 'POST',
+                                                data: {
+                                                    id: id
+                                                },
+                                                success: function (response) {
+                                                    console.log(response);
+                                                    Swal.fire({
+                                                        icon: 'success',
+                                                        title: '¡Eliminado!',
+                                                        text: 'El registro ha sido eliminado correctamente.',
+                                                        confirmButtonText: 'OK'
+                                                    });
+                                                },
+                                                error: function (error) {
+                                                    console.log(error);
+                                                    Swal.fire({
+                                                        icon: 'error',
+                                                        title: 'Error al eliminar',
+                                                        text: 'Ha ocurrido un error al intentar eliminar el registro.',
+                                                        confirmButtonText: 'OK'
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+
+
+                                $('#tbllist tbody').on('click', '.btn-edit', function () {
+                                    var data = $('#tbllist').DataTable().row($(this).parents('tr')).data();
+
+                                    $('#usuario').val(data.Usuario);
+                                    $('#correo').val(data.Correo);
+                                    $('#nombre').val(data.Nombre);
+                                    // Asignar la opción correspondiente al select según el valor de data.Perfil
+                                    if (data.Perfil === "1111") {
+                                        $('#perfil select').val("Administrador");
+                                    } else if (data.Perfil === "1001") {
+                                        $('#perfil select').val("Ingreso, informes");
+                                    } else if (data.Perfil === "1100") {
+                                        $('#perfil select').val("Ingreso, consultas");
+                                    } else if (data.Perfil === "1101") {
+                                        $('#perfil select').val("Ingreso, Consultas, Informes");
+                                    } else if (data.Perfil === "0100") {
+                                        $('#perfil select').val("Consultas");
+                                    } else {
+                                        $('#perfil select').val(""); // O alguna otra acción si el perfil no coincide
+                                    }
+
+                                });
+
+
+                            }
+                        });
+                    } else {
+                        console.log('No se encontraron datos');
+                        Swal.fire({
+                            icon: 'Error',
+                            title: 'Error',
+                            text: 'No se encontraron datos',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+        });
+    </script>
+
+
+</body>
+</html>
