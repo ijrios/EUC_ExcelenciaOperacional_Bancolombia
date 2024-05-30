@@ -1,4 +1,4 @@
-# ASP.NET MVC website - Excelencia Operacional Bancolombia
+# .NET MVC website - Excelencia Operacional Bancolombia
 
 Descripción General
 El proyecto "Excelencia Operacional Bancolombia" es una página web desarrollada con ASP.NET MVC, utilizando controladores y vistas Razor (cshtml), e integrando JavaScript en el frontend. Este sistema está diseñado para gestionar y registrar los errores de calidad dentro del Banco Bancolombia, ofreciendo funcionalidades de consulta y seguimiento para mejorar la excelencia operativa.
