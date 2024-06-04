@@ -38,6 +38,7 @@
         #piechart {
             width: 700px;
             height: 260px;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -50,18 +51,21 @@
                 <div class="details personal">
                     <span class="title">Gráficos e informes</span>
                     <div class="fields">
-                    
-                        <div class="input-field">
+
+                        <div class="moneda-field">
                             <label>Tipo</label>
                             <select id="tipo" style="margin-right: -100px">
-                                <option disabled selected>Selecciona el area</option>
-                                <option value="circular">Gráfico Circular - Tipo Error</option>
-                                <option value="columna">Gráfico de Columnas - Tipo Error</option>
-                                <option value="circular">Gráfico Circular - Error Area</option>
-                                <option value="columna">Gráfico de Columnas - Error  Area</option>
+                                <option disabled selected>Selecciona el gráfico</option>
+                                <option value="errores">Errores - Serie total</option>
+                                <option value="errorarea">Error Areas</option>
+                                <option value="tipoerror">Tipo Error</option>
+                                <option value="causas">Causas</option>
+                                <option value="impacto">Impacto</option>
+                                <option value="perdida">Pérdida Economica</option>
+                                <option value="perdida">Queja Cliente</option>
                             </select>
                         </div>
-                            <div class="input-field">
+                        <div class="moneda-field">
                             <label>Area</label>
                             <select id="area" style="margin-right: -100px">
                                 <option disabled selected>Selecciona el area</option>
@@ -69,14 +73,32 @@
                                 <option value="trade">Trade</option>
                                 <option value="cartera">Cartera</option>
                                 <option value="balanza">Balanza</option>
-                                <option value="cv">Par comercial - Compraventa</option>
-                                <option value="ocv">Otros segmentos - Compraventa</option>
+                                <option value="cv">Compraventa</option>
                                 <option value="swift">Swift</option>
                             </select>
                         </div>
-                        <div class="findBtn" style="margin-right: -100px">
-                            <button id="btnotro"  type="button" class="findBtn" style="width: 30px; margin-top: 37px; ">
-                                <i class="fas fa-arrow-left"></i>
+                        <div class="moneda-field">
+                            <label>Mes</label>
+                            <select id="meses" style="margin-right: -100px">
+                                <option disabled selected>Selecciona el mes</option>
+                                <option value="Todos">Todos</option>
+                                <option value="Enero">Enero</option>
+                                <option value="Febrero">Febrero</option>
+                                <option value="Marzo">Marzo</option>
+                                <option value="Abril">Abril</option>
+                                <option value="Mayo">Mayo</option>
+                                <option value="Junio">Junio</option>
+                                <option value="Julio">Julio</option>
+                                <option value="Agosto">Agosto</option>
+                                <option value="Septiembre">Septiembre</option>
+                                <option value="Octubre">Octubre</option>
+                                <option value="Noviembre">Noviembre</option>
+                                <option value="Diciembre">Diciembre</option>
+                            </select>
+                        </div>
+                        <div class="findBtn" style="margin-right: -115px">
+                            <button id="findBtn" type="button" class="findBtn" style="width: 30px; margin-top: 37px; ">
+                                <i class="fas fa-search"></i>
                             </button>
                         </div>
                         <div class="buttons" style="text-align: center;">
@@ -109,103 +131,157 @@
             // Manejar el clic del botón de cerrar sesión
             $('#btnCerrarSesion').click(function () {
                 // Redirigir al usuario a la acción de cerrar sesión en el controlador
-                window.location.href = '/Home/Index';
+                window.location.href = '/Home/Informes';
             });
 
-            $('#btnotro').click(function () {
-                // Redirigir al usuario a la acción de cerrar sesión en el controlador
-                window.location.href = '/Home/ImpactoInfo';
+            $('#findBtn').click(function () {
+                const chartArea = document.getElementById("area").value;
+                const chartType = document.getElementById("tipo").value;
+                const selectedFecha = document.getElementById("meses").value;
+
+                if (chartArea === "todas") {
+                    cargarGrafico(7, selectedFecha, chartType);
+                } else if (chartArea === "trade") {
+                    cargarGrafico(1, selectedFecha, chartType);
+                } else if (chartArea === "cartera") {
+                    cargarGrafico(2, selectedFecha, chartType);
+                } else if (chartArea === "balanza") {
+                    cargarGrafico(3, selectedFecha, chartType);
+                } else if (chartArea === "cv") {
+                    cargarGrafico(4, selectedFecha, chartType);
+                } else if (chartArea === "ocv") {
+                    cargarGrafico(5, selectedFecha, chartType);
+                } else if (chartArea === "swift") {
+                    cargarGrafico(6, selectedFecha, chartType);
+                }
+
             });
-        });
-    </script>
-    <script>
 
-       
-        //Función que cargar el gràfico de Google
-        function cargarGrafico(code) {
-            // Cargo el gráfico de Google
-            google.charts.load('current', {
-                'packages': ['corechart']
-            });
-            google.charts.setOnLoadCallback(drawChart(code));
-        }
-
-        let chartTypeDuo = null;
-
-        document.getElementById("area").addEventListener("change", function () {
-            chartTypeDuo = document.getElementById("area").value;
-            console.log("Valor de chartType:", chartTypeDuo);
-
-            if (chartTypeDuo === "todas") {
-                cargarGrafico(7);
-            } else if (chartTypeDuo === "trade") {
-                cargarGrafico(1);
-            } else if (chartTypeDuo === "cartera") {
-                cargarGrafico(2);
-            } else if (chartTypeDuo === "balanza") {
-                cargarGrafico(3);
-            } else if (chartTypeDuo === "cv") {
-                cargarGrafico(4);
-            } else if (chartTypeDuo === "ocv") {
-                cargarGrafico(5);
-            } else if (chartTypeDuo === "swift") {
-                cargarGrafico(6);
-            }
-        });
-
-        document.getElementById("tipo").addEventListener("change", function () {
-            chartTypeTris = document.getElementById("tipo").value;
-            console.log("Valor de chartType:", chartTypeTris);
-
-            if (chartTypeTris === "todas") {
-                cargarGrafico(7);
-            } else if (chartTypeTris === "trade") {
-                cargarGrafico(1);
-            } else if (chartTypeTris === "cartera") {
-                cargarGrafico(2);
-            } else if (chartTypeTris === "balanza") {
-                cargarGrafico(3);
-            } 
-        });
-     
-        function drawChart(code) {
-            fetch(`/Home/ObtenerErrorTipo?code=${code}`)
-                .then(response => response.json())
-                .then(data => {
-                    const arregloDatos = [['Tipo', 'Errores']];
-                    data.forEach(item => {
-                        // Aseguramos que 'Errores' se convierte a número entero
-                        const errores = parseInt(item.Errores, 10);
-                        if (!isNaN(errores)) {
-                            arregloDatos.push([item.Tipo, errores]);
-                        }
-                    });
-
-                    const dataTable = google.visualization.arrayToDataTable(arregloDatos);
-
-                    const options = {
-                        width: 720,
-                        height: 260,
-                        colors: ['#6C3483', '#863AA5', '#B22BE9', '#D878FF', '#EAB5FF'] // Aquí defines los colores
-                    };
-
-                    const chartType = document.getElementById("tipo").value;
-                    let chart;
-                    if (chartType === "circular") {
-                        chart = new google.visualization.PieChart(document.getElementById('piechart'));
-                    } else {
-                        chart = new google.visualization.ColumnChart(document.getElementById('piechart'));
-                    }
-                    chart.draw(dataTable, options);
-                    Console.log("recibidos")
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
+            //Función que cargar el gràfico de Google
+            function cargarGrafico(code, mes, tipo) {
+                // Cargo el gráfico de Google
+                google.charts.load('current', {
+                    'packages': ['corechart']
                 });
-        }
+                google.charts.setOnLoadCallback(drawChart(code, mes, tipo));
+            }
 
 
+            function drawChart(code, mes, tipo) {
+                if (tipo === "tipoerror") {
+                    fetch(`/Home/ObtenerErrorTipo?code=${code}&fecha=${mes}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const arregloDatos = [['Tipo', 'Errores', { role: 'style' }]];
+                            const colores = ['#00c288']; // Definimos colores diferentes para cada tipo de error
+
+                            data.forEach((item, index) => {
+                                const errores = parseInt(item.Errores, 10);
+                                if (!isNaN(errores)) {
+                                    arregloDatos.push([item.Tipo, errores, colores[index % colores.length]]);
+                                }
+                            });
+
+                            var areas = null;
+                            if (code === 1) {
+                                areas = "Area: Trade"
+                            } else if (code === 2) {
+                                areas = "Area: Cartera"
+                            } else if (code === 3) {
+                                areas = "Area: Balanza"
+                            } else if (code === 4) {
+                                areas = "Area: Compraventa";
+                            } else if (code === 6) {
+                                areas = "Area: Swift"
+                            } else if (code === 7) {
+                                areas = "Area: Todas"
+                            }
+
+                            const dataTable = google.visualization.arrayToDataTable(arregloDatos);
+                            console.log('DataTable:', dataTable); 
+
+
+                            const options = {
+                                width: 670,
+                                height: 260,
+                                title: 'Consolidado de errores por Tipo - ' + areas.toString(),
+                                legend: { position: 'top', maxLines: 2 },
+                                tooltip: { isHtml: true }
+                            };
+
+                            let chart;
+                            chart = new google.visualization.ColumnChart(document.getElementById('piechart'));
+
+                            chart.draw(dataTable, options);
+                            console.log("Datos recibidos y gráfico dibujado")
+                        })
+                        .catch(error => {
+                            console.error('Error fetching data:', error);
+                        });
+             
+                } else if (tipo === "errores") {
+
+                    const mesesOrden = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+                    fetch(`/Home/ObtenerErrorMes?code=${code}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Verificar la estructura de los datos obtenidos
+                            console.log('Datos obtenidos:', data);
+
+                            // Obtener los meses únicos y ordenarlos según mesesOrden
+                            const meses = [...new Set(data.map(item => item.Mes))].sort((a, b) => mesesOrden.indexOf(a) - mesesOrden.indexOf(b));
+                            console.log('Meses únicos ordenados:', meses);
+
+                            // Obtener las áreas únicas
+                            const areas = [...new Set(data.map(item => item.Area))];
+                            console.log('Áreas únicas:', areas);
+
+                            // Crear la estructura de datos para Google Charts
+                            const arregloDatos = [['Mes', ...areas]];
+
+                            // Agrupar los datos por mes y área
+                            meses.forEach(mes => {
+                                const row = [mes];
+                                areas.forEach(area => {
+                                    const item = data.find(d => d.Mes === mes && d.Area === area);
+                                    row.push(item ? parseInt(item.Errores, 10) : 0);
+                                });
+                                arregloDatos.push(row);
+                            });
+
+                            console.log('Estructura de datos para Google Charts:', arregloDatos);
+
+                            const dataTable = google.visualization.arrayToDataTable(arregloDatos);
+
+                            const options = {
+                                width: 670,
+                                height: 260,
+                                colors: ['#863AA5', '#00c288','#4285F4', '#EA4335'], // Personaliza los colores
+                                title: 'Consolidado de errores por Mes y Área',
+                                legend: { position: 'right' },
+                                hAxis: {
+                                    title: 'Mes'
+                                },
+                                vAxis: {
+                                    title: 'Errores'
+                                }
+                            };
+
+                            const chart = new google.visualization.LineChart(document.getElementById('piechart'));
+                            chart.draw(dataTable, options);
+                            console.log("Datos recibidos y gráfico dibujado");
+                        })
+                        .catch(error => {
+                            console.error('Error fetching data:', error);
+                        });
+                } else if (tipo === "tipoerror") {
+
+                }
+
+            }
+
+        });
     </script>
-
 </body>
 </html>
