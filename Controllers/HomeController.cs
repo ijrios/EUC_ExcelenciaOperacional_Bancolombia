@@ -156,7 +156,32 @@ namespace Qualitas.Controllers
             }
 
             ViewBag.WindowsUsername = windowsUsername;
-            return View();
+
+            AccessDatabase connection = new AccessDatabase();
+            var con = connection.Inicio(windowsUsername);
+
+            if (con == null)
+            {
+                ViewBag.MensajeDuo = "No cuenta con permisos para esta vista";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (con == "Administrador")
+            {
+                ViewBag.MensajeUnus = "Bienvenido al histórico de errores por usuarios";
+                return View();
+            }
+            else if (con == "Consulta")
+            {
+                ViewBag.MensajeTris = "No cuenta con permisos para esta vista";
+                return RedirectToAction("Index", "Asesores");
+            }
+            else
+            {
+                string mensajeRechazo = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no cuentas con permisos para ingresar a esta vista";
+
+                return RedirectToAction("Index", "Asesores", new { mensajeRechazo = mensajeRechazo });
+
+            }
         }
 
         public ActionResult Causas()
@@ -305,8 +330,27 @@ namespace Qualitas.Controllers
                 ViewBag.Mensaje = "Error al eliminar el reproceso: " + ex.Message;
             }
 
-            return View("Consultas");
+            return Json(new { success = true });
         }
+
+        [HttpPost]
+        public ActionResult EliminarCausa(int id)
+        {
+            try
+            {
+                AccessDatabase db = new AccessDatabase();
+                db.EliminarCausas(id);
+
+                ViewBag.Mensaje = "Causa eliminada correctamente";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Mensaje = "Error al eliminar la causa: " + ex.Message;
+            }
+
+            return Json(new { success = true });
+        }
+
 
         [HttpPost]
         public ActionResult EliminarUsuario(int id)
@@ -374,94 +418,102 @@ namespace Qualitas.Controllers
         {
             try
             {
-                List<ErrorUsuario> errores = ObtenerUsuariosError(); // Asumiendo que esta función devuelve la lista de usuarios con errores
-                List<Usuarios> usuarios = ObtenerUsuariosDesdeLaClase();
                 AccessDatabase correoServ = new AccessDatabase();
+
+                DateTime fechaActual = DateTime.Now;
+                string diaActual = fechaActual.DayOfWeek.ToString();
+                int limiteinf = 0;
+                int limitesup = 0;
 
                 string fechaInicial = null;
                 string fechaFinal = null;
                 string fechaInicialCorreo = null;
                 string fechaFinalCorreo = null;
-                string confirmacion = null ;
+                string fechaInicialUsuarios = null;
+                string fechaFinalUsuario = null;
+                string confirmacion = null;
+                if (diaActual == "Monday")
+                {
+                    limiteinf = -7;
+                    limitesup = -3;
+                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                    fechaInicialCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
+                }
+                else if (diaActual == "Tuesday")
+                {
+                    limiteinf = -8;
+                    limitesup = -4;
+                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                    fechaInicialCorreo = fechaActual.AddDays(-1).ToString("yyyyMMdd");
+                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
+                }
+                else if (diaActual == "Wednesday")
+                {
+                    limiteinf = -9;
+                    limitesup = -5;
+                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                    fechaInicialCorreo = fechaActual.AddDays(-2).ToString("yyyyMMdd");
+                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
+                }
+                else if (diaActual == "Thursday")
+                {
+                    limiteinf = -10;
+                    limitesup = -6;
+                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                    fechaInicialCorreo = fechaActual.AddDays(-3).ToString("yyyyMMdd");
+                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
+                }
+                else if (diaActual == "Friday")
+                {
+                    limiteinf = -11;
+                    limitesup = -7;
+                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                    fechaInicialCorreo = fechaActual.AddDays(-4).ToString("yyyyMMdd");
+                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
+                }
+                else
+                {
+                    limiteinf = 0;
+                    limitesup = 0;
+                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                    fechaInicialCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                    confirmacion = "NO";
+                }
+
+                List<ErrorUsuario> errores = ObtenerUsuariosError(fechaInicialUsuarios,fechaFinalUsuario);
+                List<Usuarios> usuarios = ObtenerUsuariosDesdeLaClase();
+
+             
 
                 if (errores != null && errores.Count > 0)
                 {
                     Correos mail = new Correos();
-                    DateTime fechaActual = DateTime.Now;
-                    string diaActual = fechaActual.DayOfWeek.ToString();
-                    int limiteinf = 0;
-                    int limitesup = 0;
+                    
 
-                    if (diaActual == "Monday")
-                    {
-                        limiteinf = -7;
-                        limitesup = -3;
-                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                        fechaInicialCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                    }
-                    else if (diaActual == "Monday")
-                    {
-                        limiteinf = -8;
-                        limitesup = -4;
-                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                        fechaInicialCorreo = fechaActual.AddDays(-1).ToString("yyyyMMdd");
-                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                    }
-                    else if (diaActual == "Tuesday")
-                    {
-                        limiteinf = -9;
-                        limitesup = -5;
-                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                        fechaInicialCorreo = fechaActual.AddDays(-2).ToString("yyyyMMdd");
-                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                    }
-                    else if (diaActual == "Wednesday")
-                    {
-                        limiteinf = -10;
-                        limitesup = -6;
-                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                        fechaInicialCorreo = fechaActual.AddDays(-3).ToString("yyyyMMdd");
-                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                    }
-                    else if (diaActual == "Thursday")
-                    {
-                        limiteinf = -11;
-                        limitesup = -7;
-                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                        fechaInicialCorreo = fechaActual.AddDays(-4).ToString("yyyyMMdd");
-                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                    }
-                    else if (diaActual == "Friday")
-                    {
-                        limiteinf = -12;
-                        limitesup = -8;
-                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                        fechaInicialCorreo = fechaActual.AddDays(-5).ToString("yyyyMMdd");
-                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                    }
-                    else
-                    {
-                        limiteinf = 0;
-                        limitesup = 0;
-                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                        fechaInicialCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                        confirmacion = "NO";
-                    }
+                    
 
                     if (confirmacion == "Enviado")
                     {
@@ -476,9 +528,9 @@ namespace Qualitas.Controllers
                     }
                     else if (confirmacion == "OK")
                     {
+
                         foreach (var errorUsuario in errores)
                         {
-
                             foreach (var errorUsuarioTotal in usuarios)
                             {
                                 if (errorUsuarioTotal.Usuario.Contains(errorUsuario.Usuario))
@@ -487,7 +539,7 @@ namespace Qualitas.Controllers
                                     string correo = errorUsuarioTotal.Correo;
                                     string nombre = errorUsuario.Usuario;
                                     string idError = errorUsuario.Errores.ToString();
-                                    mail.EnviarCorreo("joarios@bancolombia.com.co", nombre, idError, fechaInicial, fechaFinal);
+                                    mail.EnviarCorreo(correo, nombre, idError, fechaInicial, fechaFinal);
                                 }
 
                             }
@@ -632,6 +684,29 @@ namespace Qualitas.Controllers
         }
 
 
+        [HttpPost]
+        public ActionResult EditarCausas(
+         int id,
+           string area,
+           string tipoerror,
+           string causas)
+        {
+            try
+            {
+                AccessDatabase db = new AccessDatabase();
+                db.EditarCausa(id, area, tipoerror, causas);
+
+                ViewBag.Mensaje = "Usuario editado correctamente";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Mensaje = "Error al registrar el usuario: " + ex.Message;
+            }
+
+            return Json(new { success = true });
+        }
+
+
         [HttpGet]
         public ActionResult ObtenerReprocesosFechaArea(string fechaini, string fechafin, string area)
         {
@@ -691,27 +766,27 @@ namespace Qualitas.Controllers
 
        
 
-        private List<Reproceso> ObtenerReprocesosPerdidasDesdeLaClase(string area)
+        private List<ReprocesoPerdida> ObtenerReprocesosPerdidasDesdeLaClase(string area, string mes)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase reprocesoDB = new AccessDatabase();
-            return reprocesoDB.ObtenerReprocesosPerdidaEconomica(area);
+            return reprocesoDB.ObtenerReprocesosPerdidaEconomica(area, mes);
         }
 
-        private List<Reproceso> ObtenerReprocesosNoPerdidasDesdeLaClase(string area)
+        private List<ReprocesoPerdida> ObtenerReprocesosNoPerdidasDesdeLaClase(string area, string mes)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase reprocesoDB = new AccessDatabase();
-            return reprocesoDB.ObtenerReprocesosPerdidaNoEconomica(area);
+            return reprocesoDB.ObtenerReprocesosPerdidaNoEconomica(area, mes);
         }
 
         [HttpGet]
-        public ActionResult ObtenerReprocesosPerdidas(string area)
+        public ActionResult ObtenerReprocesosPerdidas(string area, string mes)
         {
             try
             {
                 // Aquí obtienes la lista de reprocesos desde tu clase aparte
-                List<Reproceso> reprocesos = ObtenerReprocesosPerdidasDesdeLaClase(area);
+                List<ReprocesoPerdida> reprocesos = ObtenerReprocesosPerdidasDesdeLaClase(area, mes);
 
                 // Si no se encontraron reprocesos, devolver un JSON vacío
                 if (reprocesos == null || reprocesos.Count == 0)
@@ -874,12 +949,12 @@ namespace Qualitas.Controllers
 
 
         [HttpGet]
-        public ActionResult ObtenerReprocesosNoPerdidas(string area)
+        public ActionResult ObtenerReprocesosNoPerdidas(string area, string mes)
         {
             try
             {
                 // Aquí obtienes la lista de reprocesos desde tu clase aparte
-                List<Reproceso> reprocesos = ObtenerReprocesosNoPerdidasDesdeLaClase(area);
+                List<ReprocesoPerdida> reprocesos = ObtenerReprocesosNoPerdidasDesdeLaClase(area, mes);
 
                 // Si no se encontraron reprocesos, devolver un JSON vacío
                 if (reprocesos == null || reprocesos.Count == 0)
@@ -909,12 +984,20 @@ namespace Qualitas.Controllers
         }
 
 
-        private List<ErrorUsuario> ObtenerUsuariosError()
+        private List<ErrorUsuario> ObtenerUsuariosError(string fechaini, string fechafin)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase error = new AccessDatabase();
             
-            return error.ObtenerReprocesoUsuarios("2024-05-20", "2024-05-24");
+            return error.ObtenerReprocesoUsuarios(fechaini, fechafin);
+        }
+
+        private List<ErrorUsuario> ObtenerUsuariosErrorTotus()
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase error = new AccessDatabase();
+
+            return error.ObtenerReprocesoUsuariosTodos();
         }
 
         private List<ErrorArea> ObtenerAreaError()
@@ -924,46 +1007,80 @@ namespace Qualitas.Controllers
             return error.ObtenerReprocesoArea();
         }
 
-
-        private List<ErrorTipo> ObtenerTipoError(string mes)
+        private List<ErrorMes> ObtenerErroresGenerales(string code, string año)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase error = new AccessDatabase();
-            return error.ObtenerReprocesoTipoError(mes);
+            return error.ObtenerReprocesoErroresArea(code, año);
         }
 
-        private List<ErrorTipo> ObtenerTipoErrorSwift(string mes)
+        private List<ErrorCausa> ObtenerErroresCausas(string code, string mes, string año)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase error = new AccessDatabase();
-            return error.ObtenerReprocesoTipoErrorArea("Swift", mes);
+            return error.ObtenerReprocesoTipoErrorCausas(code,mes, año);
         }
 
-        private List<ErrorTipo> ObtenerTipoErrorTrade(string mes)
+        private List<ImpactoError> ObtenerErroresImpacto(string code, string mes, string año)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase error = new AccessDatabase();
-            return error.ObtenerReprocesoTipoErrorArea("Trade", mes);
+            return error.ObtenerReprocesoTipoErrorImpacto(code, mes, año);
         }
-        private List<ErrorTipo> ObtenerTipoErrorCartera(string mes)
+
+        private List<ErrorPerdida> ObtenerErroresPerdidas(string code, string mes, string año)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase error = new AccessDatabase();
-            return error.ObtenerReprocesoTipoErrorArea("Cartera", mes);
+            return error.ObtenerReprocesoTipoErrorPerdidas(code, mes, año);
         }
-        private List<ErrorTipo> ObtenerTipoErrorCV(string mes)
+
+        private List<ErrorQueja> ObtenerErroresQuejas(string code, string mes, string año)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase error = new AccessDatabase();
-            return error.ObtenerReprocesoTipoErrorArea("Compraventa", mes);
+            return error.ObtenerReprocesoTipoErrorQuejas(code, mes, año);
+        }
+
+        private List<ErrorTipo> ObtenerTipoError(string mes, string año)
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase error = new AccessDatabase();
+            return error.ObtenerReprocesoTipoError(mes, año);
+        }
+
+        private List<ErrorTipo> ObtenerTipoErrorSwift(string mes, string año)
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase error = new AccessDatabase();
+            return error.ObtenerReprocesoTipoErrorArea("Swift", mes, año);
+        }
+
+        private List<ErrorTipo> ObtenerTipoErrorTrade(string mes, string año)
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase error = new AccessDatabase();
+            return error.ObtenerReprocesoTipoErrorArea("Trade", mes, año);
+        }
+        private List<ErrorTipo> ObtenerTipoErrorCartera(string mes, string año)
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase error = new AccessDatabase();
+            return error.ObtenerReprocesoTipoErrorArea("Cartera", mes, año);
+        }
+        private List<ErrorTipo> ObtenerTipoErrorCV(string mes, string año)
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase error = new AccessDatabase();
+            return error.ObtenerReprocesoTipoErrorArea("Compraventa", mes, año);
         }
 
 
-        private List<ErrorTipo> ObtenerTipoErrorBalanza(string mes)
+        private List<ErrorTipo> ObtenerTipoErrorBalanza(string mes, string año)
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase error = new AccessDatabase();
-            return error.ObtenerReprocesoTipoErrorArea("Balanza", mes);
+            return error.ObtenerReprocesoTipoErrorArea("Balanza", mes, año);
         } 
 
       
@@ -973,7 +1090,7 @@ namespace Qualitas.Controllers
             try
             {
                 // Aquí obtienes la lista de reprocesos desde tu clase aparte
-                List<ErrorUsuario> errores = ObtenerUsuariosError();
+                List<ErrorUsuario> errores = ObtenerUsuariosErrorTotus();
 
                 // Si no se encontraron reprocesos, devolver un JSON vacío
                 if (errores == null || errores.Count == 0)
@@ -1025,34 +1142,34 @@ namespace Qualitas.Controllers
         
 
         [HttpGet]
-        public ActionResult ObtenerErrorTipo(string code, string fecha)
+        public ActionResult ObtenerErrorTipo(string code, string fecha, string año)
         {
             try
             {
                 List<ErrorTipo> errores = new List<ErrorTipo>();
                 if (code.Equals("1"))
                 {
-                    errores = ObtenerTipoErrorTrade(fecha);
+                    errores = ObtenerTipoErrorTrade(fecha, año);
                 }
                 else if (code.Equals("2"))
                 {
-                    errores = ObtenerTipoErrorCartera(fecha);
+                    errores = ObtenerTipoErrorCartera(fecha, año);
                 }
                 else if (code.Equals("3"))
                 {
-                    errores = ObtenerTipoErrorBalanza(fecha);
+                    errores = ObtenerTipoErrorBalanza(fecha, año);
                 }
                 else if (code.Equals("4"))
                 {
-                    errores = ObtenerTipoErrorCV(fecha);
+                    errores = ObtenerTipoErrorCV(fecha, año);
                 }
                 else if (code.Equals("6"))
                 {
-                    errores = ObtenerTipoErrorSwift(fecha);
+                    errores = ObtenerTipoErrorSwift(fecha, año);
                 }
                 else if (code.Equals("7"))
                 {
-                    errores = ObtenerTipoError(fecha);
+                    errores = ObtenerTipoError(fecha, año);
                 }
 
                 // Si no se encontraron reprocesos, devolver un JSON vacío
@@ -1076,34 +1193,85 @@ namespace Qualitas.Controllers
         }
 
         [HttpGet]
-        public ActionResult ObtenerErrorTipoImp(string code, string mes)
+        public ActionResult ObtenerErrorCausa(string code, string mes, string año)
         {
             try
             {
-                List<ErrorTipo> errores = new List<ErrorTipo>();
+                List<ErrorCausa> errores = new List<ErrorCausa>();
                 if (code.Equals("1"))
                 {
-                    errores = ObtenerTipoErrorTrade(mes);
+                    errores = ObtenerErroresCausas("Trade",mes, año);
                 }
                 else if (code.Equals("2"))
                 {
-                    errores = ObtenerTipoErrorCartera(mes);
+                    errores = ObtenerErroresCausas("Cartera", mes, año);
                 }
                 else if (code.Equals("3"))
                 {
-                    errores = ObtenerTipoErrorBalanza(mes);
+                    errores = ObtenerErroresCausas("Balanza", mes, año);
                 }
                 else if (code.Equals("4"))
                 {
-                    errores = ObtenerTipoErrorCV(mes);
+                    errores = ObtenerErroresCausas("Compraventa",mes, año);
                 }
                 else if (code.Equals("6"))
                 {
-                    errores = ObtenerTipoErrorSwift(mes);
+                    errores = ObtenerErroresCausas("Swift",mes, año);
                 }
                 else if (code.Equals("7"))
                 {
-                    errores = ObtenerTipoError(mes);
+                    errores = ObtenerErroresCausas("Todas",mes, año);
+                }
+                // Si no se encontraron reprocesos, devolver un JSON vacío
+                if (errores == null || errores.Count == 0)
+                {
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+
+                // Convertir la lista de reprocesos a un formato JSON
+                string jsonReprocesos = JsonConvert.SerializeObject(errores);
+
+                // Devolver el JSON como resultado
+                return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Json(new { error = "Error al obtener los reprocesos" }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+        [HttpGet]
+        public ActionResult ObtenerErrorImpacto(string code, string mes, string año)
+        {
+            try
+            {
+                List<ImpactoError> errores = new List<ImpactoError>();
+                if (code.Equals("1"))
+                {
+                    errores = ObtenerErroresImpacto("Trade", mes,año);
+                }
+                else if (code.Equals("2"))
+                {
+                    errores = ObtenerErroresImpacto("Cartera", mes, año);
+                }
+                else if (code.Equals("3"))
+                {
+                    errores = ObtenerErroresImpacto("Balanza", mes, año);
+                }
+                else if (code.Equals("4"))
+                {
+                    errores = ObtenerErroresImpacto("Compraventa", mes, año);
+                }
+                else if (code.Equals("6"))
+                {
+                    errores = ObtenerErroresImpacto("Swift",mes, año);
+                }
+                else if (code.Equals("7"))
+                {
+                    errores = ObtenerErroresImpacto("Todas",mes, año);
                 }
 
                 // Si no se encontraron reprocesos, devolver un JSON vacío
@@ -1126,6 +1294,160 @@ namespace Qualitas.Controllers
             }
         }
 
+
+        [HttpGet]
+        public ActionResult ObtenerErrorPerdida(string code,string mes, string año)
+        {
+            try
+            {
+                List<ErrorPerdida> errores = new List<ErrorPerdida>();
+                if (code.Equals("1"))
+                {
+                    errores = ObtenerErroresPerdidas("Trade",mes, año);
+                }
+                else if (code.Equals("2"))
+                {
+                    errores = ObtenerErroresPerdidas("Cartera",mes, año);
+                }
+                else if (code.Equals("3"))
+                {
+                    errores = ObtenerErroresPerdidas("Balanza",mes, año);
+                }
+                else if (code.Equals("4"))
+                {
+                    errores = ObtenerErroresPerdidas("Compraventa",mes, año);
+                }
+                else if (code.Equals("6"))
+                {
+                    errores = ObtenerErroresPerdidas("Swift",mes, año);
+                }
+                else if (code.Equals("7"))
+                {
+                    errores = ObtenerErroresPerdidas("Todas",mes, año);
+                }
+                // Si no se encontraron reprocesos, devolver un JSON vacío
+                if (errores == null || errores.Count == 0)
+                {
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+
+                // Convertir la lista de reprocesos a un formato JSON
+                string jsonReprocesos = JsonConvert.SerializeObject(errores);
+
+                // Devolver el JSON como resultado
+                return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Json(new { error = "Error al obtener los reprocesos" }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public ActionResult ObtenerErrorQueja(string code, string mes, string año)
+        {
+            try
+            {
+                List<ErrorQueja> errores = new List<ErrorQueja>();
+
+                if (code.Equals("1"))
+                {
+                    errores = ObtenerErroresQuejas("Trade", mes,año);
+                }
+                else if (code.Equals("2"))
+                {
+                    errores = ObtenerErroresQuejas("Cartera",mes, año);
+                }
+                else if (code.Equals("3"))
+                {
+                    errores = ObtenerErroresQuejas("Balanza",mes, año);
+                }
+                else if (code.Equals("4"))
+                {
+                    errores = ObtenerErroresQuejas("Compraventa",mes, año);
+                }
+                else if (code.Equals("6"))
+                {
+                    errores = ObtenerErroresQuejas("Swift",mes, año);
+                }
+                else if (code.Equals("7"))
+                {
+                    errores = ObtenerErroresQuejas("Todas",mes, año);
+                }
+
+                // Si no se encontraron reprocesos, devolver un JSON vacío
+                if (errores == null || errores.Count == 0)
+                {
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+
+                // Convertir la lista de reprocesos a un formato JSON
+                string jsonReprocesos = JsonConvert.SerializeObject(errores);
+
+                // Devolver el JSON como resultado
+                return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Json(new { error = "Error al obtener los reprocesos" }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public ActionResult ObtenerErrorMes(string code, string año)
+        {
+            try
+            {
+                List<ErrorMes> errores = new List<ErrorMes>();
+
+                
+                if (code.Equals("1"))
+                {
+                    errores = ObtenerErroresGenerales("Trade", año);
+                }
+                else if (code.Equals("2"))
+                {
+                    errores = ObtenerErroresGenerales("Cartera", año);
+                }
+                else if (code.Equals("3"))
+                {
+                    errores = ObtenerErroresGenerales("Balanza", año);
+                }
+                else if (code.Equals("4"))
+                {
+                    errores = ObtenerErroresGenerales("Compraventa", año);
+                }
+                else if (code.Equals("6"))
+                {
+                    errores = ObtenerErroresGenerales("Swift", año);
+                }
+                else if (code.Equals("7"))
+                {
+                    errores = ObtenerErroresGenerales("Todas", año);
+                }
+                // Si no se encontraron reprocesos, devolver un JSON vacío
+                if (errores == null || errores.Count == 0)
+                {
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+
+                // Convertir la lista de reprocesos a un formato JSON
+                string jsonReprocesos = JsonConvert.SerializeObject(errores);
+
+                // Devolver el JSON como resultado
+                return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Json(new { error = "Error al obtener los reprocesos" }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         [HttpGet]
         public ActionResult ObtenerUsuario()
@@ -1190,6 +1512,30 @@ namespace Qualitas.Controllers
             return Json(new { success = true });
         }
 
+        [HttpPost]
+        public ActionResult InsertarCausas(
+     string area,
+     string tipoerror,
+     string causa)
+        {
+            try
+            {
+                AccessDatabase db = new AccessDatabase();
+
+                ViewBag.Mensaje = "Usuario editado correctamente";
+                db.InsertarCausa(area,tipoerror, causa);
+               
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Mensaje = "Error al registrar el usuario: " + ex.Message;
+            }
+
+            return Json(new { success = true });
+        }
+
+
+
         [HttpGet]
         public ActionResult GetTipoErrores(string area)
         {
@@ -1251,6 +1597,35 @@ namespace Qualitas.Controllers
 
         }
 
+        [HttpGet]
+        public ActionResult GetCausa()
+        {
+            try
+            {
+                AccessDatabase causa = new AccessDatabase();
+                List<CausasTotal> causas = causa.GetCausas();
+
+                // Si no se encontraron reprocesos, devolver un JSON vacío
+                if (causas == null || causas.Count == 0)
+                {
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+
+                // Convertir la lista de reprocesos a un formato JSON
+                string jsonReprocesos = JsonConvert.SerializeObject(causas);
+
+                // Devolver el JSON como resultado
+                return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Content("Error al obtener los reprocesos");
+            }
+
+
+        }
 
         [HttpGet]
         public ActionResult GetCausaErroresFecha(string area)
@@ -1290,6 +1665,36 @@ namespace Qualitas.Controllers
             {
                 AccessDatabase causa = new AccessDatabase();
                 List<Moneda> causas = causa.GetMonedas();
+
+                // Si no se encontraron reprocesos, devolver un JSON vacío
+                if (causas == null || causas.Count == 0)
+                {
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+
+                // Convertir la lista de reprocesos a un formato JSON
+                string jsonReprocesos = JsonConvert.SerializeObject(causas);
+
+                // Devolver el JSON como resultado
+                return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Content("Error al obtener los reprocesos");
+            }
+
+
+        }
+
+        [HttpGet]
+        public ActionResult GetAño()
+        {
+            try
+            {
+                AccessDatabase causa = new AccessDatabase();
+                List<Años> causas = causa.GetAños();
 
                 // Si no se encontraron reprocesos, devolver un JSON vacío
                 if (causas == null || causas.Count == 0)
