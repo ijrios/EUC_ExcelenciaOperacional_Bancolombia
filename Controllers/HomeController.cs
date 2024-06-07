@@ -58,10 +58,11 @@ namespace Qualitas.Controllers
             {
                 ViewBag.MensajeUnus = "Bienvenido al ingreso de reprocesos";
                 return View();
-            } else if (con == "Consulta")
+            } else if (con == "Consultas")
             {
-                ViewBag.MensajeTris = "No cuenta con permisos para esta vista";
-                return RedirectToAction("Index", "Home");
+                string mensajeRechazo = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no cuentas con permisos para ingresar a esta vista";
+
+                return RedirectToAction("Index", "Home", new { mensajeRechazo = mensajeRechazo });
             }
             else
             {
@@ -82,10 +83,36 @@ namespace Qualitas.Controllers
             }
 
             ViewBag.WindowsUsername = windowsUsername;
-            return View();
+
+            AccessDatabase connection = new AccessDatabase();
+            var con = connection.Inicio(windowsUsername);
+
+            if (con == null)
+            {
+                ViewBag.MensajeDuo = "No cuenta con permisos para esta vista";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (con == "Administrador")
+            {
+                ViewBag.MensajeUnus = "Bienvenido al ventana de consultas de reprocesos";
+                return View();
+            }
+            else if (con == "Consultas")
+            {
+                string mensajeRechazo = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no cuentas con permisos para ingresar a esta vista";
+
+                return RedirectToAction("Index", "Home", new { mensajeRechazo = mensajeRechazo });
+            }
+            else
+            {
+                string mensajeRechazo = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " Bienvenido a la vista de consultas para usuarios sin permisos de administrador, solo podrás ver tus reportes";
+
+                return RedirectToAction("ConsultasReg", "Home", new { mensajeRechazo = mensajeRechazo });
+
+            }
         }
 
-        public ActionResult ConsultasnoAdmin()
+        public ActionResult ConsultasReg()
         {
             string windowsUsername = User.Identity.Name;
             if (!string.IsNullOrEmpty(windowsUsername) && windowsUsername.StartsWith("BANCOLOMBIA\\"))
@@ -170,16 +197,17 @@ namespace Qualitas.Controllers
                 ViewBag.MensajeUnus = "Bienvenido al histórico de errores por usuarios";
                 return View();
             }
-            else if (con == "Consulta")
+            else if (con == "Consultas")
             {
-                ViewBag.MensajeTris = "No cuenta con permisos para esta vista";
-                return RedirectToAction("Index", "Asesores");
+                string mensajeRechazo = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no cuentas con permisos para ingresar a esta vista";
+
+                return RedirectToAction("Index", "Home", new { mensajeRechazo = mensajeRechazo });
             }
             else
             {
                 string mensajeRechazo = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no cuentas con permisos para ingresar a esta vista";
 
-                return RedirectToAction("Index", "Asesores", new { mensajeRechazo = mensajeRechazo });
+                return RedirectToAction("Asesores", "Home", new { mensajeRechazo = mensajeRechazo });
 
             }
         }
@@ -235,10 +263,11 @@ namespace Qualitas.Controllers
                 ViewBag.WindowsUsername = windowsUsername;
                 return View();
             }
-            else if (con == "Consulta")
+            else if (con == "Consultas")
             {
-                ViewBag.MensajeTris = "No cuenta con permisos para esta vista";
-                return RedirectToAction("Index", "Home");
+                string mensajeRechazo = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no cuentas con permisos para ingresar a esta vista";
+
+                return RedirectToAction("Index", "Home", new { mensajeRechazo = mensajeRechazo });
             }
             else
             {
@@ -416,159 +445,197 @@ namespace Qualitas.Controllers
         [HttpPost]
         public ActionResult EnviarCorreos()
         {
-            try
+
+            string windowsUsername = User.Identity.Name;
+            if (!string.IsNullOrEmpty(windowsUsername) && windowsUsername.StartsWith("BANCOLOMBIA\\"))
             {
-                AccessDatabase correoServ = new AccessDatabase();
+                windowsUsername = windowsUsername.Substring("BANCOLOMBIA\\".Length);
+            }
 
-                DateTime fechaActual = DateTime.Now;
-                string diaActual = fechaActual.DayOfWeek.ToString();
-                int limiteinf = 0;
-                int limitesup = 0;
+            ViewBag.WindowsUsername = windowsUsername;
 
-                string fechaInicial = null;
-                string fechaFinal = null;
-                string fechaInicialCorreo = null;
-                string fechaFinalCorreo = null;
-                string fechaInicialUsuarios = null;
-                string fechaFinalUsuario = null;
-                string confirmacion = null;
-                if (diaActual == "Monday")
+            if (windowsUsername == "jaramos" || windowsUsername == "joarios")
+            {
+                try
                 {
-                    limiteinf = -7;
-                    limitesup = -3;
-                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
-                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
-                    fechaInicialCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                }
-                else if (diaActual == "Tuesday")
-                {
-                    limiteinf = -8;
-                    limitesup = -4;
-                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
-                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
-                    fechaInicialCorreo = fechaActual.AddDays(-1).ToString("yyyyMMdd");
-                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                }
-                else if (diaActual == "Wednesday")
-                {
-                    limiteinf = -9;
-                    limitesup = -5;
-                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
-                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
-                    fechaInicialCorreo = fechaActual.AddDays(-2).ToString("yyyyMMdd");
-                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                }
-                else if (diaActual == "Thursday")
-                {
-                    limiteinf = -10;
-                    limitesup = -6;
-                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
-                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
-                    fechaInicialCorreo = fechaActual.AddDays(-3).ToString("yyyyMMdd");
-                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                }
-                else if (diaActual == "Friday")
-                {
-                    limiteinf = -11;
-                    limitesup = -7;
-                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                    fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
-                    fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
-                    fechaInicialCorreo = fechaActual.AddDays(-4).ToString("yyyyMMdd");
-                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                    confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
-                }
-                else
-                {
-                    limiteinf = 0;
-                    limitesup = 0;
-                    fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
-                    fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
-                    fechaInicialCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                    fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
-                    confirmacion = "NO";
-                }
 
-                List<ErrorUsuario> errores = ObtenerUsuariosError(fechaInicialUsuarios,fechaFinalUsuario);
-                List<Usuarios> usuarios = ObtenerUsuariosDesdeLaClase();
+                    AccessDatabase correoServ = new AccessDatabase();
 
-             
+                    DateTime fechaActual = DateTime.Now;
+                    string diaActual = fechaActual.DayOfWeek.ToString();
+                    int limiteinf = 0;
+                    int limitesup = 0;
 
-                if (errores != null && errores.Count > 0)
-                {
-                    Correos mail = new Correos();
-                    
-
-                    
-
-                    if (confirmacion == "Enviado")
+                    string fechaInicial = null;
+                    string fechaFinal = null;
+                    string fechaInicialCorreo = null;
+                    string fechaFinalCorreo = null;
+                    string fechaInicialUsuarios = null;
+                    string fechaFinalUsuario = null;
+                    string confirmacion = null;
+                    if (diaActual == "Monday")
                     {
-                        //Yo Alexander Rios no se que pueda a hacer aquí realmente, ya que no hay opción 
-                        ViewBag.Mensaje = "Ya se enviaron";
-                        return Json(new { success = "Ya" });
+                        limiteinf = -7;
+                        limitesup = -3;
+                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                        fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                        fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                        fechaInicialCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
                     }
-                    else if (confirmacion == "Error")
+                    else if (diaActual == "Tuesday")
                     {
-                        ViewBag.Mensaje = "No se ha enviado correos esta semana";
-                        return Json(new { success = "Error" });
+                        limiteinf = -8;
+                        limitesup = -4;
+                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                        fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                        fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                        fechaInicialCorreo = fechaActual.AddDays(-1).ToString("yyyyMMdd");
+                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
                     }
-                    else if (confirmacion == "OK")
+                    else if (diaActual == "Wednesday")
                     {
+                        limiteinf = -9;
+                        limitesup = -5;
+                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                        fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                        fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                        fechaInicialCorreo = fechaActual.AddDays(-2).ToString("yyyyMMdd");
+                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
+                    }
+                    else if (diaActual == "Thursday")
+                    {
+                        limiteinf = -10;
+                        limitesup = -6;
+                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                        fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                        fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                        fechaInicialCorreo = fechaActual.AddDays(-3).ToString("yyyyMMdd");
+                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
+                    }
+                    else if (diaActual == "Friday")
+                    {
+                        limiteinf = -11;
+                        limitesup = -7;
+                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                        fechaInicialUsuarios = fechaActual.AddDays(limiteinf).ToString("yyyy-MM-dd");
+                        fechaFinalUsuario = fechaActual.AddDays(limitesup).ToString("yyyy-MM-dd");
+                        fechaInicialCorreo = fechaActual.AddDays(-4).ToString("yyyyMMdd");
+                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                        confirmacion = correoServ.GetCorreoConfirma(fechaInicialCorreo, fechaFinalCorreo);
+                    }
+                    else
+                    {
+                        limiteinf = 0;
+                        limitesup = 0;
+                        fechaInicial = fechaActual.AddDays(limiteinf).ToString("MMdd");
+                        fechaFinal = fechaActual.AddDays(limitesup).ToString("MMdd");
+                        fechaInicialCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                        fechaFinalCorreo = fechaActual.AddDays(0).ToString("yyyyMMdd");
+                        confirmacion = "NO";
+                    }
 
-                        foreach (var errorUsuario in errores)
+                    List<ErrorUsuario> errores = ObtenerUsuariosError(fechaInicialUsuarios, fechaFinalUsuario);
+                    List<Usuarios> usuarios = ObtenerUsuariosDesdeLaClase();
+
+
+
+                    if (errores != null && errores.Count > 0)
+                    {
+                        Correos mail = new Correos();
+
+
+
+
+                        if (confirmacion == "Enviado")
                         {
-                            foreach (var errorUsuarioTotal in usuarios)
+                            //Yo Alexander Rios no se que pueda a hacer aquí realmente, ya que no hay opción 
+                            ViewBag.Mensaje = "Ya se enviaron";
+                            return Json(new { success = "Ya" });
+                        }
+                        else if (confirmacion == "Error")
+                        {
+                            ViewBag.Mensaje = "No se ha enviado correos esta semana";
+                            return Json(new { success = "Error" });
+                        }
+                        else if (confirmacion == "OK")
+                        {
+
+                            foreach (var errorUsuario in errores)
                             {
-                                if (errorUsuarioTotal.Usuario.Contains(errorUsuario.Usuario))
+                                foreach (var errorUsuarioTotal in usuarios)
                                 {
-                                    // Asumiendo que ErrorUsuario tiene propiedades para el correo y el nombre del usuario
-                                    string correo = errorUsuarioTotal.Correo;
-                                    string nombre = errorUsuario.Usuario;
-                                    string idError = errorUsuario.Errores.ToString();
-                                    mail.EnviarCorreo(correo, nombre, idError, fechaInicial, fechaFinal);
+                                 
+                                    if (errorUsuarioTotal.Usuario.Contains(errorUsuario.Usuario))
+                                    {
+                                        // Asumiendo que ErrorUsuario tiene propiedades para el correo y el nombre del usuario
+                                        string correo = errorUsuarioTotal.Correo;
+                                        string nombre = errorUsuario.Usuario;
+                                        string idError = errorUsuario.Errores.ToString();
+                                        string nombrecompleto = errorUsuarioTotal.Nombre;                                        
+                                        List<ReprocesoUsuario> reprocesos = ObtenerUsuariosErrorIndividual(fechaInicialUsuarios, fechaFinalUsuario, nombre);
+                                        string archivoplanoerror = @"C:\temp\" + "errores-" +nombre+ ".txt";
+                                        using (StreamWriter writer = new StreamWriter(archivoplanoerror))
+                                        {
+                                            foreach (var erroris in reprocesos)
+                                            {
+                                                // Concatenar los campos con barras ("|") y escribir en el archivo
+                                                string linea = $"{erroris.FechaOp}|{erroris.FechaReg.Trim()}|{erroris.Nit}|{erroris.TipoError}|{erroris.Causa}|{erroris.Descripcion}|{erroris.Impacto}";
+                                                writer.WriteLine(linea);
+                                            }
+                                        }
+                                        
+                                        //mail.EnviarCorreo(correo, nombrecompleto, idError, fechaInicial, fechaFinal);
+                                       
+                                    }
+                                    else
+                                    {
+                                        string nombrecompleto = errorUsuarioTotal.Nombre;
+                                        string correo = errorUsuarioTotal.Correo;
+                                        //mail.EnviarCorreoDuo("jaramos@bancolombia.com.co", "Jakeline Ramos Peña", fechaInicial, fechaFinal);
+                                    }
+
                                 }
 
+
                             }
-
-
+                            InsertarRepro(fechaActual.ToString("yyyyMMdd"), 1, diaActual.ToString());
+                            ViewBag.Mensaje = "Correos enviados correctamente";
+                            return Json(new { success = "Enviado" });
                         }
-                        InsertarRepro(fechaActual.ToString("yyyyMMdd"), 1, diaActual.ToString());
-                        ViewBag.Mensaje = "Correos enviados correctamente";
-                        return Json(new { success = "Enviado" });
-                    }
-                    else if (confirmacion == "NO") 
-                    {
-                        //Yo Alexander Rios no se que pueda a hacer aquí realmente, ya que no hay opción 
-                        ViewBag.Mensaje = "Ya se enviaron";
-                        return Json(new { success = "Ya" });
-                    }
-                
-                }
-                else
-                {
-                    ViewBag.Mensaje = "No se encontraron usuarios con errores";
-                }
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Mensaje = "Error al enviar los correos: " + ex.Message;
-            }
+                        else if (confirmacion == "NO")
+                        {
+                            //Yo Alexander Rios no se que pueda a hacer aquí realmente, ya que no hay opción 
+                            ViewBag.Mensaje = "Ya se enviaron";
+                            return Json(new { success = "Ya" });
+                        }
 
-            return Json(new { success = false });
+                    }
+                    else
+                    {
+                        ViewBag.Mensaje = "No se encontraron usuarios con errores";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.Mensaje = "Error al enviar los correos: " + ex.Message;
+                }
+                return Json(new { success = false });
+            }
+            else
+            {
+                return Json(new { success = false });
+            }
+           
         }
 
 
@@ -646,6 +713,14 @@ namespace Qualitas.Controllers
             return Json(new { success = true });
         }
 
+        private List<Reproceso> ObtenerReprocesosDesdeLaClaseDuo(string usuario)
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase reprocesoDBPerdida = new AccessDatabase();
+            return reprocesoDBPerdida.ObtenerReprocesosInd(usuario);
+        }
+
+
         private List<Reproceso> ObtenerReprocesosDesdeLaClase()
         {
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
@@ -658,6 +733,13 @@ namespace Qualitas.Controllers
             // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
             AccessDatabase reprocesoDBPerdida = new AccessDatabase();
             return reprocesoDBPerdida.ObtenerReprocesosFechaArea(fechaini, fechafin, area);
+        }
+
+        private List<Reproceso> ObtenerReprocesosFechaDesdeLaClaseDuo(string fechaini, string fechafin, string usuario)
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase reprocesoDBPerdida = new AccessDatabase();
+            return reprocesoDBPerdida.ObtenerReprocesosFechaAreaInd(fechaini, fechafin, usuario);
         }
 
         [HttpPost]
@@ -735,6 +817,42 @@ namespace Qualitas.Controllers
             }
         }
 
+        [HttpGet]
+        public ActionResult ObtenerReprocesosFechaAreaIndividual(string fechaini, string fechafin)
+        {
+            try
+            {
+                string windowsUsername = User.Identity.Name;
+                if (!string.IsNullOrEmpty(windowsUsername) && windowsUsername.StartsWith("BANCOLOMBIA\\"))
+                {
+                    windowsUsername = windowsUsername.Substring("BANCOLOMBIA\\".Length);
+                }
+
+                ViewBag.WindowsUsername = windowsUsername;
+
+                // Aquí obtienes la lista de reprocesos desde tu clase aparte
+                List<Reproceso> reprocesos = ObtenerReprocesosFechaDesdeLaClaseDuo(fechaini, fechafin, windowsUsername);
+
+                // Si no se encontraron reprocesos, devolver un JSON vacío
+                if (reprocesos == null || reprocesos.Count == 0)
+                {
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+
+                // Convertir la lista de reprocesos a un formato JSON
+                string jsonReprocesos = JsonConvert.SerializeObject(reprocesos);
+
+                // Devolver el JSON como resultado
+                return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Content("Error al obtener los reprocesos");
+            }
+        }
+
 
         [HttpGet]
         public ActionResult ObtenerReprocesos()
@@ -764,7 +882,43 @@ namespace Qualitas.Controllers
             }
         }
 
-       
+        [HttpGet]
+        public ActionResult ObtenerReprocesosIndividuales()
+        {
+            try
+            {
+                string windowsUsername = User.Identity.Name;
+                if (!string.IsNullOrEmpty(windowsUsername) && windowsUsername.StartsWith("BANCOLOMBIA\\"))
+                {
+                    windowsUsername = windowsUsername.Substring("BANCOLOMBIA\\".Length);
+                }
+
+                ViewBag.WindowsUsername = windowsUsername;
+
+                // Aquí obtienes la lista de reprocesos desde tu clase aparte
+                List<Reproceso> reprocesos = ObtenerReprocesosDesdeLaClaseDuo(windowsUsername);
+
+                // Si no se encontraron reprocesos, devolver un JSON vacío
+                if (reprocesos == null || reprocesos.Count == 0)
+                {
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+
+                // Convertir la lista de reprocesos a un formato JSON
+                string jsonReprocesos = JsonConvert.SerializeObject(reprocesos);
+
+                // Devolver el JSON como resultado
+                return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Content("Error al obtener los reprocesos");
+            }
+        }
+
+
 
         private List<ReprocesoPerdida> ObtenerReprocesosPerdidasDesdeLaClase(string area, string mes)
         {
@@ -990,6 +1144,15 @@ namespace Qualitas.Controllers
             AccessDatabase error = new AccessDatabase();
             
             return error.ObtenerReprocesoUsuarios(fechaini, fechafin);
+        }
+
+
+        private List<ReprocesoUsuario> ObtenerUsuariosErrorIndividual(string fechaini, string fechafin, string usuario)
+        {
+            // Aquí llamas al método ObtenerReprocesos de tu clase ReprocesoDB
+            AccessDatabase error = new AccessDatabase();
+
+            return error.ObtenerReprocesoUsuariosSemana(fechaini, fechafin, usuario);
         }
 
         private List<ErrorUsuario> ObtenerUsuariosErrorTotus()
@@ -1516,14 +1679,14 @@ namespace Qualitas.Controllers
         public ActionResult InsertarCausas(
      string area,
      string tipoerror,
-     string causa)
+     string causas)
         {
             try
             {
                 AccessDatabase db = new AccessDatabase();
 
                 ViewBag.Mensaje = "Usuario editado correctamente";
-                db.InsertarCausa(area,tipoerror, causa);
+                db.InsertarCausa(area,tipoerror, causas);
                
             }
             catch (Exception ex)
@@ -1646,6 +1809,71 @@ namespace Qualitas.Controllers
 
                 // Devolver el JSON como resultado
                 return Content(jsonReprocesos, "application/json");
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y devolver un mensaje de error si es necesario
+                Console.WriteLine("Excepción al obtener los reprocesos: " + ex.Message);
+                return Content("Error al obtener los reprocesos");
+            }
+
+
+        }
+
+        [HttpGet]
+        public ActionResult GetCausaErroresUsuarios(string usuario)
+        {
+            try
+            {
+
+                string windowsUsername = User.Identity.Name;
+                if (!string.IsNullOrEmpty(windowsUsername) && windowsUsername.StartsWith("BANCOLOMBIA\\"))
+                {
+                    windowsUsername = windowsUsername.Substring("BANCOLOMBIA\\".Length);
+                }
+                Console.WriteLine(windowsUsername);
+                ViewBag.WindowsUsername = windowsUsername;
+
+                AccessDatabase connection = new AccessDatabase();
+                var con = connection.Inicio(windowsUsername);
+
+                if (con == null)
+                {
+                    string mensajenoautorizado = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no puedes consultar la información de los de los demás usuarios si no eres administrador";
+
+                    return RedirectToAction("Asesores", "Home", new { mensajenoautorizado = mensajenoautorizado });
+                }
+                else if (con == "Administrador")
+                {
+                    AccessDatabase causa = new AccessDatabase();
+                    List<CausasTotal> causas = causa.GetTiposCausasUsuarios(usuario);
+
+                    // Si no se encontraron reprocesos, devolver un JSON vacío
+                    if (causas == null || causas.Count == 0)
+                    {
+                        return Json(null, JsonRequestBehavior.AllowGet);
+                    }
+
+                    // Convertir la lista de reprocesos a un formato JSON
+                    string jsonReprocesos = JsonConvert.SerializeObject(causas);
+
+                    // Devolver el JSON como resultado
+                    return Content(jsonReprocesos, "application/json");
+                }
+                else if (con == "Consultas")
+                {
+                    string mensajenoautorizado = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no puedes consultar la información de los de los demás usuarios si no eres administrador";
+
+                    return Json(null, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    string mensajenoautorizado = char.ToUpper(windowsUsername[0]) + windowsUsername.Substring(1) + " no puedes consultar la información de los de los demás usuarios si no eres administrador";
+
+                    return Json(null, JsonRequestBehavior.AllowGet);
+
+                }
+
             }
             catch (Exception ex)
             {
