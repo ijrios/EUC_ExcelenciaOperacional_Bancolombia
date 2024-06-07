@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Data.OleDb;
 using System.IO;
+using System.Data;
 
 namespace Qualitas.Models
 {
@@ -22,7 +23,7 @@ namespace Qualitas.Models
 
 
             // Consulta SQL para obtener todos los registros de una tabla
-            string query = "SELECT * FROM Usuarios WHERE Usuario = @usuario";
+            string query = "SELECT * FROM Persona WHERE Usuario = @Usuario";
 
             int posicionUnus = 0;
             int posicionDuo = 1;
@@ -40,7 +41,7 @@ namespace Qualitas.Models
                     // Crear un comando SQL
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@usuario", usuario);
+                        command.Parameters.AddWithValue("@Usuario", usuario);
                         // Ejecutar la consulta y obtener un lector de datos
                         using (OleDbDataReader reader = command.ExecuteReader())
                         {
@@ -49,22 +50,15 @@ namespace Qualitas.Models
                             {
                                 string perfil = reader["Perfil"].ToString().Trim();
 
-                                if (perfil[posicionUnus] == '1' && perfil[posicionDuo] == '1' && perfil[posicionTris] == '1' && perfil[posicionQuattuor] == '1')
+                                if (perfil.Equals("Administrador"))
                                 {
                                     return "Administrador";
                                 }
-                                else if (perfil[posicionUnus] == '1' && perfil[posicionDuo] == '1' && perfil[posicionTris] == '0' && perfil[posicionQuattuor] == '1')
+                                else if (perfil.Equals("Consultas"))
                                 {
-                                    return "IngresoConsulta";
+                                    return "Consultas";
                                 }
-                                else if (perfil[posicionUnus] == '0' && perfil[posicionDuo] == '1' && perfil[posicionTris] == '0' && perfil[posicionQuattuor] == '0')
-                                {
-                                    return "Consulta";
-                                }
-                                else if (perfil[posicionUnus] == '0' && perfil[posicionDuo] == '1' && perfil[posicionTris] == '0' && perfil[posicionQuattuor] == '1')
-                                {
-                                    return "Informe";
-                                }
+                               
                             }
                         }
                     }
@@ -106,14 +100,16 @@ namespace Qualitas.Models
         string descripcion,
         string area,
         string tipoError,
-        string mes)
+        string mes,
+        string año,
+        string queja)
         {
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
 
-            string query = "INSERT INTO Reproceso (FechaOp, FechaReg, Consecutivo, Nit, Moneda, Valor, Cliente, ProdEvento, Responsable, UsuarioReproceso, Perdida, Impacto, Causa, Descripcion, Area, TipoError, Mes) " +
-                       "VALUES (@FechaOp, @FechaReg, @Consecutivo, @Nit, @Moneda, @Valor, @Cliente, @ProdEvento, @Responsable, @UsuarioReproceso, @Perdida, @Impacto, @Causa, @Descripcion, @Area, @TipoError, @Mes)";
+            string query = "INSERT INTO Reproceso (FechaOp, FechaReg, Consecutivo, Nit, Moneda, Valor, Cliente, ProdEvento, Responsable, UsuarioReproceso, Perdida, Impacto, Causa, Descripcion, Area, TipoError, Mes, Año, QuejaCliente) " +
+                       "VALUES (@FechaOp, @FechaReg, @Consecutivo, @Nit, @Moneda, @Valor, @Cliente, @ProdEvento, @Responsable, @UsuarioReproceso, @Perdida, @Impacto, @Causa, @Descripcion, @Area, @TipoError, @Mes, @Año, @QuejaCliente)";
             try
             {
                 using (OleDbConnection connection = new OleDbConnection(connectionString))
@@ -140,6 +136,8 @@ namespace Qualitas.Models
                         command.Parameters.AddWithValue("@Area", area);
                         command.Parameters.AddWithValue("@TipoError", tipoError);
                         command.Parameters.AddWithValue("@Mes", mes);
+                        command.Parameters.AddWithValue("@Año", año);
+                        command.Parameters.AddWithValue("@QuejaCliente", queja);
 
                         // Ejecutar la consulta de inserción
                         command.ExecuteNonQuery();
@@ -182,6 +180,25 @@ namespace Qualitas.Models
             }
         }
 
+        public void EliminarCausas(int id)
+        {
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                string query = "DELETE FROM Causas WHERE Id = @ID";
+
+                using (OleDbCommand command = new OleDbCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ID", id);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
         public void EliminarUsu(int id)
         {
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
@@ -221,29 +238,32 @@ namespace Qualitas.Models
                             while (reader.Read())
                             {
                                 Reproceso reproceso = new Reproceso();
-                                reproceso.Id = Convert.ToInt32(reader["Id"].ToString());
-                                reproceso.FechaOp = reader["FechaOp"].ToString();
-                                reproceso.FechaReg = reader["FechaReg"].ToString();
-                                reproceso.Consecutivo = reader["Consecutivo"].ToString();
-                                reproceso.Nit = reader["Nit"].ToString();
-                                reproceso.Moneda = reader["Moneda"].ToString();
-                                reproceso.Valor = Convert.ToDecimal(reader["Valor"]);
-                                reproceso.Cliente = reader["Cliente"].ToString();
-                                reproceso.ProdEvento = reader["ProdEvento"].ToString();
-                                reproceso.Responsable = reader["Responsable"].ToString();
-                                reproceso.UsuarioReproceso = reader["UsuarioReproceso"].ToString();
-                                reproceso.Perdida = reader["Perdida"].ToString();
-                                reproceso.Impacto = reader["Impacto"].ToString();
-                                reproceso.Causa = reader["Causa"].ToString();
-                                reproceso.Descripcion = reader["Descripcion"].ToString();
-                                reproceso.Area = reader["Area"].ToString();
-                                reproceso.TipoError = reader["TipoError"].ToString();
-                                reproceso.Mes = reader["Mes"].ToString();
+                                reproceso.Id = Convert.ToInt32(reader["Id"]);
+                                reproceso.FechaOp = reader["FechaOp"] == DBNull.Value ? null : reader["FechaOp"].ToString();
+                                reproceso.FechaReg = reader["FechaReg"] == DBNull.Value ? null : reader["FechaReg"].ToString();
+                                reproceso.Consecutivo = reader["Consecutivo"] == DBNull.Value ? null : reader["Consecutivo"].ToString();
+                                reproceso.Nit = reader["Nit"] == DBNull.Value ? null : reader["Nit"].ToString();
+                                reproceso.Moneda = reader["Moneda"] == DBNull.Value ? null : reader["Moneda"].ToString();
+                                reproceso.Valor = reader["Valor"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Valor"]);
+                                reproceso.Cliente = reader["Cliente"] == DBNull.Value ? null : reader["Cliente"].ToString();
+                                reproceso.ProdEvento = reader["ProdEvento"] == DBNull.Value ? null : reader["ProdEvento"].ToString();
+                                reproceso.Responsable = reader["Responsable"] == DBNull.Value ? null : reader["Responsable"].ToString();
+                                reproceso.UsuarioReproceso = reader["UsuarioReproceso"] == DBNull.Value ? null : reader["UsuarioReproceso"].ToString();
+                                reproceso.Perdida = reader["Perdida"] == DBNull.Value ? null : reader["Perdida"].ToString();
+                                reproceso.Impacto = reader["Impacto"] == DBNull.Value ? null : reader["Impacto"].ToString();
+                                reproceso.Causa = reader["Causa"] == DBNull.Value ? null : reader["Causa"].ToString();
+                                reproceso.Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString();
+                                reproceso.Area = reader["Area"] == DBNull.Value ? null : reader["Area"].ToString();
+                                reproceso.TipoError = reader["TipoError"] == DBNull.Value ? null : reader["TipoError"].ToString();
+                                reproceso.Mes = reader["Mes"] == DBNull.Value ? null : reader["Mes"].ToString();
+                                reproceso.Año = reader["Año"] == DBNull.Value ? null : reader["Año"].ToString();
+                                reproceso.Queja = reader["QuejaCliente"] == DBNull.Value ? null : reader["QuejaCliente"].ToString();
                                 reprocesos.Add(reproceso);
                             }
                         }
                     }
                 }
+
             }
             catch (OleDbException ex)
             {
@@ -261,22 +281,90 @@ namespace Qualitas.Models
             return reprocesos;
         }
 
-        public List<Reproceso> ObtenerReprocesosFechaArea(string fechaini, string fechafin, string area)
+        public List<Reproceso> ObtenerReprocesosInd(string usuario)
         {
             List<Reproceso> reprocesos = new List<Reproceso>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
 
-            string query = "SELECT * FROM Reproceso WHERE FechaOp BETWEEN @FechaIni AND @FechaFin AND Area = @Area";
+            string query = "SELECT * FROM Reproceso WHERE Responsable = @Responsable";
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Responsable", usuario);
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Reproceso reproceso = new Reproceso();
+                                reproceso.Id = Convert.ToInt32(reader["Id"]);
+                                reproceso.FechaOp = reader["FechaOp"] == DBNull.Value ? null : reader["FechaOp"].ToString();
+                                reproceso.FechaReg = reader["FechaReg"] == DBNull.Value ? null : reader["FechaReg"].ToString();
+                                reproceso.Consecutivo = reader["Consecutivo"] == DBNull.Value ? null : reader["Consecutivo"].ToString();
+                                reproceso.Nit = reader["Nit"] == DBNull.Value ? null : reader["Nit"].ToString();
+                                reproceso.Moneda = reader["Moneda"] == DBNull.Value ? null : reader["Moneda"].ToString();
+                                reproceso.Valor = reader["Valor"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["Valor"]);
+                                reproceso.Cliente = reader["Cliente"] == DBNull.Value ? null : reader["Cliente"].ToString();
+                                reproceso.ProdEvento = reader["ProdEvento"] == DBNull.Value ? null : reader["ProdEvento"].ToString();
+                                reproceso.Responsable = reader["Responsable"] == DBNull.Value ? null : reader["Responsable"].ToString();
+                                reproceso.UsuarioReproceso = reader["UsuarioReproceso"] == DBNull.Value ? null : reader["UsuarioReproceso"].ToString();
+                                reproceso.Perdida = reader["Perdida"] == DBNull.Value ? null : reader["Perdida"].ToString();
+                                reproceso.Impacto = reader["Impacto"] == DBNull.Value ? null : reader["Impacto"].ToString();
+                                reproceso.Causa = reader["Causa"] == DBNull.Value ? null : reader["Causa"].ToString();
+                                reproceso.Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString();
+                                reproceso.Area = reader["Area"] == DBNull.Value ? null : reader["Area"].ToString();
+                                reproceso.TipoError = reader["TipoError"] == DBNull.Value ? null : reader["TipoError"].ToString();
+                                reproceso.Mes = reader["Mes"] == DBNull.Value ? null : reader["Mes"].ToString();
+                                reproceso.Año = reader["Año"] == DBNull.Value ? null : reader["Año"].ToString();
+                                reproceso.Queja = reader["QuejaCliente"] == DBNull.Value ? null : reader["QuejaCliente"].ToString();
+                                reprocesos.Add(reproceso);
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+
+            return reprocesos;
+        }
+
+        public List<Reproceso> ObtenerReprocesosFechaAreaInd(string fechaini, string fechafin, string usuario)
+        {
+            List<Reproceso> reprocesos = new List<Reproceso>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            string query = "SELECT * FROM Reproceso WHERE Responsable = @Responsable FechaOp BETWEEN @FechaIni AND @FechaFin";
+          
             try
             {
                 using (OleDbConnection connection = new OleDbConnection(connectionString))
                 {
                     OleDbCommand command = new OleDbCommand(query, connection);
+
+                   
                     command.Parameters.AddWithValue("@FechaIni", fechaini);
                     command.Parameters.AddWithValue("@FechaFin", fechafin);
-                    command.Parameters.AddWithValue("@Area", area);
+                    command.Parameters.AddWithValue("@Responsable", usuario);
+
 
                     connection.Open();
                     using (OleDbDataReader reader = command.ExecuteReader())
@@ -302,6 +390,90 @@ namespace Qualitas.Models
                             reproceso.Area = reader["Area"].ToString();
                             reproceso.TipoError = reader["TipoError"].ToString();
                             reproceso.Mes = reader["Mes"].ToString();
+                            reproceso.Año = reader["Año"].ToString();
+                            reproceso.Queja = reader["QuejaCliente"].ToString();
+                            reprocesos.Add(reproceso);
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos: " + ex.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos: " + ex.Message);
+                throw;
+            }
+
+            return reprocesos;
+        }
+
+        public List<Reproceso> ObtenerReprocesosFechaArea(string fechaini, string fechafin, string area)
+        {
+            List<Reproceso> reprocesos = new List<Reproceso>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
+
+            if (area == "Todas")
+            {
+                query = "SELECT * FROM Reproceso WHERE FechaOp BETWEEN @FechaIni AND @FechaFin";
+            }
+            else
+            {
+                query = "SELECT * FROM Reproceso WHERE FechaOp BETWEEN @FechaIni AND @FechaFin AND Area = @Area";
+            }
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    OleDbCommand command = new OleDbCommand(query, connection);
+
+                    if (area == "Todas")
+                    {
+                        command.Parameters.AddWithValue("@FechaIni", fechaini);
+                        command.Parameters.AddWithValue("@FechaFin", fechafin);
+                    }
+                    else
+                    {
+                        command.Parameters.AddWithValue("@FechaIni", fechaini);
+                        command.Parameters.AddWithValue("@FechaFin", fechafin);
+                        command.Parameters.AddWithValue("@Area", area);
+                    }
+                  
+
+                    connection.Open();
+                    using (OleDbDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Reproceso reproceso = new Reproceso();
+                            reproceso.Id = Convert.ToInt32(reader["Id"]);
+                            reproceso.FechaOp = reader["FechaOp"].ToString();
+                            reproceso.FechaReg = reader["FechaReg"].ToString();
+                            reproceso.Consecutivo = reader["Consecutivo"].ToString();
+                            reproceso.Nit = reader["Nit"].ToString();
+                            reproceso.Moneda = reader["Moneda"].ToString();
+                            reproceso.Valor = Convert.ToDecimal(reader["Valor"]);
+                            reproceso.Cliente = reader["Cliente"].ToString();
+                            reproceso.ProdEvento = reader["ProdEvento"].ToString();
+                            reproceso.Responsable = reader["Responsable"].ToString();
+                            reproceso.UsuarioReproceso = reader["UsuarioReproceso"].ToString();
+                            reproceso.Perdida = reader["Perdida"].ToString();
+                            reproceso.Impacto = reader["Impacto"].ToString();
+                            reproceso.Causa = reader["Causa"].ToString();
+                            reproceso.Descripcion = reader["Descripcion"].ToString();
+                            reproceso.Area = reader["Area"].ToString();
+                            reproceso.TipoError = reader["TipoError"].ToString();
+                            reproceso.Mes = reader["Mes"].ToString();
+                            reproceso.Año = reader["Año"].ToString();
+                            reproceso.Queja = reader["QuejaCliente"].ToString();
                             reprocesos.Add(reproceso);
                         }
                     }
@@ -324,14 +496,15 @@ namespace Qualitas.Models
         }
 
 
-        public List<ErrorUsuario> ObtenerReprocesoUsuarios()
+        public List<ErrorUsuario> ObtenerReprocesoUsuarios(string fechaInicio, string fechaFin)
         {
             List<ErrorUsuario> erroresPorUsuario = new List<ErrorUsuario>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
 
-            string query = "SELECT Responsable, COUNT(*) AS TotalErrores FROM Reproceso GROUP BY Responsable";
+            string query = "SELECT Responsable, COUNT(*) AS TotalErrores FROM Reproceso WHERE FechaReg BETWEEN @fechaInicio AND @fechaFin GROUP BY Responsable";
+
             try
             {
                 using (OleDbConnection connection = new OleDbConnection(connectionString))
@@ -339,6 +512,179 @@ namespace Qualitas.Models
                     connection.Open();
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
+                        command.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+                        command.Parameters.AddWithValue("@fechaFin", fechaFin);
+
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                ErrorUsuario error = new ErrorUsuario();
+                                error.Usuario = reader["Responsable"].ToString();
+                                int totalErrores = Convert.ToInt32(reader["TotalErrores"]);
+                                double porcentaje = (double)(totalErrores) / 16 * 100;
+                                error.Errores = totalErrores.ToString();
+                                error.Porcentaje = porcentaje.ToString();
+                                erroresPorUsuario.Add(error);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+
+            return erroresPorUsuario;
+        }
+
+
+        public List<ReprocesoUsuario> ObtenerReprocesoUsuariosSemana(string fechaInicio, string fechaFin, string usuario)
+        {
+            List<ReprocesoUsuario> reprocesos = new List<ReprocesoUsuario>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            string query = "SELECT * FROM Reproceso WHERE FechaReg BETWEEN @fechaInicio AND @fechaFin AND Responsable = @Responsable";
+
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+                        command.Parameters.AddWithValue("@fechaFin", fechaFin);
+                        command.Parameters.AddWithValue("@Responsable", usuario);
+
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                ReprocesoUsuario reproceso = new ReprocesoUsuario();
+                                reproceso.Id = Convert.ToInt32(reader["Id"]);
+                                reproceso.FechaOp = reader["FechaOp"].ToString();
+                                reproceso.FechaReg = reader["FechaReg"].ToString();
+                                reproceso.Consecutivo = reader["Consecutivo"].ToString();
+                                reproceso.Nit = reader["Nit"].ToString();
+                                reproceso.Moneda = reader["Moneda"].ToString();
+                                reproceso.Valor = Convert.ToDecimal(reader["Valor"]);
+                                reproceso.Cliente = reader["Cliente"].ToString();
+                                reproceso.ProdEvento = reader["ProdEvento"].ToString();
+                                reproceso.Responsable = reader["Responsable"].ToString();
+                                reproceso.UsuarioReproceso = reader["UsuarioReproceso"].ToString();
+                                reproceso.Perdida = reader["Perdida"].ToString();
+                                reproceso.Impacto = reader["Impacto"].ToString();
+                                reproceso.Causa = reader["Causa"].ToString();
+                                reproceso.Descripcion = reader["Descripcion"].ToString();
+                                reproceso.Area = reader["Area"].ToString();
+                                reproceso.TipoError = reader["TipoError"].ToString();
+                                reproceso.Mes = reader["Mes"].ToString();
+                                reproceso.Año = reader["Año"].ToString();
+                                reproceso.Queja = reader["QuejaCliente"].ToString();
+                                reprocesos.Add(reproceso);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+
+            return reprocesos;
+        }
+
+        public List<ErrorUsuario> ObtenerReprocesoUsuariosTodos()
+        {
+            List<ErrorUsuario> erroresPorUsuario = new List<ErrorUsuario>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            string query = "SELECT Responsable, COUNT(*) AS TotalErrores FROM Reproceso GROUP BY Responsable";
+
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                ErrorUsuario error = new ErrorUsuario();
+                                error.Usuario = reader["Responsable"].ToString();
+                                int totalErrores = Convert.ToInt32(reader["TotalErrores"]);
+                                double porcentaje = (double)(totalErrores) / 16 * 100;
+                                error.Errores = totalErrores.ToString();
+                                error.Porcentaje = porcentaje.ToString();
+                                erroresPorUsuario.Add(error);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+
+            return erroresPorUsuario;
+        }
+
+        public List<ErrorUsuario> ObtenerReprocesoUsuariosArea(string fechaInicio, string fechaFin, string areas)
+        {
+            List<ErrorUsuario> erroresPorUsuario = new List<ErrorUsuario>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            string query = "SELECT Responsable, COUNT(*) AS TotalErrores FROM Reproceso WHERE FechaOp BETWEEN @fechaInicio AND @fechaFin AND Area = @area GROUP BY Responsable";
+
+
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+                        command.Parameters.AddWithValue("@fechaFin", fechaFin);
+                        command.Parameters.AddWithValue("@area", areas);
+
                         using (OleDbDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -370,6 +716,7 @@ namespace Qualitas.Models
 
             return erroresPorUsuario;
         }
+
 
         public List<ErrorArea> ObtenerReprocesoArea()
         {
@@ -420,14 +767,22 @@ namespace Qualitas.Models
             return erroresPorUsuario;
         }
 
-        public List<ErrorTipo> ObtenerReprocesoTipoError()
+        public List<ErrorTipo> ObtenerReprocesoTipoError(string mes, string año)
         {
             List<ErrorTipo> erroresPorUsuario = new List<ErrorTipo>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
 
-            string query = "SELECT TipoError, COUNT(*) AS TotalErrores FROM Reproceso GROUP BY TipoError";
+            if (mes == "Todos")
+            {
+                query = "SELECT TipoError, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año GROUP BY TipoError";
+            }
+            else
+            {
+                query = "SELECT TipoError, COUNT(*) AS TotalErrores FROM Reproceso WHERE Mes = @Mes AND Año = @Año GROUP BY TipoError";
+            }
 
             try
             {
@@ -436,6 +791,13 @@ namespace Qualitas.Models
                     connection.Open();
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
+                      
+                        if (mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Mes", mes);
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        command.Parameters.AddWithValue("@Año", año);
                         using (OleDbDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -468,14 +830,32 @@ namespace Qualitas.Models
             return erroresPorUsuario;
         }
 
-        public List<ImpactoError> ObtenerReprocesoTipoErrorImpacto(string Area)
+        public List<ImpactoError> ObtenerReprocesoTipoErrorImpacto(string Area, string mes, string año)
         {
             List<ImpactoError> erroresPorUsuario = new List<ImpactoError>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
 
-            string query = "SELECT Impacto, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area GROUP BY Impacto";
+
+            if (Area == "Todas" && mes == "Todos")
+            {
+                query = "SELECT Impacto, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año GROUP BY Impacto";
+            }
+            else if (Area != "Todas" && mes == "Todos")
+            {
+                query = "SELECT Impacto, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año GROUP BY Impacto";
+            }
+            else if (Area != "Todas" && mes != "Todos")
+            {
+                query = "SELECT Impacto, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año and Mes = @Mes GROUP BY Impacto";
+            }
+            else if (Area == "Todas" && mes != "Todos")
+            {
+                query = "SELECT Impacto, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año AND Mes = @Mes GROUP BY Impacto";
+            }
+           
 
             try
             {
@@ -484,7 +864,28 @@ namespace Qualitas.Models
                     connection.Open();
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@Area", Area);
+
+                        if (Area == "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        else if (Area == "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                       
                         using (OleDbDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -516,14 +917,34 @@ namespace Qualitas.Models
 
             return erroresPorUsuario;
         }
-        public List<ErrorTipo> ObtenerReprocesoTipoErrorArea(string Area)
+
+        public List<ErrorCausa> ObtenerReprocesoTipoErrorCausas(string Area, string mes, string año)
         {
-            List<ErrorTipo> erroresPorUsuario = new List<ErrorTipo>();
+            List<ErrorCausa> erroresPorUsuario = new List<ErrorCausa>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
 
-            string query = "SELECT TipoError, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area GROUP BY TipoError";
+
+            if (Area == "Todas" && mes == "Todos")
+            {
+                query = "SELECT Causa, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año GROUP BY Causa";
+            }
+            else if (Area != "Todas" && mes == "Todos")
+            {
+                query = "SELECT Causa, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año GROUP BY Causa";
+            }
+            else if (Area != "Todas" && mes != "Todos")
+            {
+                query = "SELECT Causa, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año and Mes = @Mes GROUP BY Causa";
+            }
+            else if (Area == "Todas" && mes != "Todos")
+            {
+                query = "SELECT Causa, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año AND Mes = @Mes GROUP BY Causa";
+            }
+
+
             try
             {
                 using (OleDbConnection connection = new OleDbConnection(connectionString))
@@ -531,7 +952,284 @@ namespace Qualitas.Models
                     connection.Open();
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@Area", Area);
+                        if (Area == "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        else if (Area == "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                ErrorCausa error = new ErrorCausa();
+                                error.Causa = reader["Causa"].ToString();
+                                int totalErrores = Convert.ToInt32(reader["TotalErrores"]);
+                                double porcentaje = (double)(totalErrores) / 15 * 100;
+                                error.Errores = totalErrores.ToString();
+                                error.Porcentaje = porcentaje.ToString();
+                                erroresPorUsuario.Add(error);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+
+            return erroresPorUsuario;
+        }
+
+        public List<ErrorPerdida> ObtenerReprocesoTipoErrorPerdidas(string Area, string mes, string año)
+        {
+            List<ErrorPerdida> erroresPorUsuario = new List<ErrorPerdida>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
+
+
+            if (Area == "Todas" && mes == "Todos")
+            {
+                query = "SELECT Perdida, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año GROUP BY Perdida";
+            }
+            else if (Area != "Todas" && mes == "Todos")
+            {
+                query = "SELECT Perdida, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año GROUP BY Perdida";
+            }
+            else if (Area != "Todas" && mes != "Todos")
+            {
+                query = "SELECT Perdida, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año and Mes = @Mes GROUP BY Perdida";
+            }
+            else if (Area == "Todas" && mes != "Todos")
+            {
+                query = "SELECT Perdida, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año AND Mes = @Mes GROUP BY Perdida";
+            }
+
+
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        if (Area == "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        else if (Area == "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                ErrorPerdida error = new ErrorPerdida();
+                                error.Perdida = reader["Perdida"].ToString();
+                                int totalErrores = Convert.ToInt32(reader["TotalErrores"]);
+                                double porcentaje = (double)(totalErrores) / 15 * 100;
+                                error.Errores = totalErrores.ToString();
+                                error.Porcentaje = porcentaje.ToString();
+                                erroresPorUsuario.Add(error);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+
+            return erroresPorUsuario;
+        }
+
+        public List<ErrorQueja> ObtenerReprocesoTipoErrorQuejas(string Area, string mes, string año)
+        {
+            List<ErrorQueja> erroresPorUsuario = new List<ErrorQueja>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
+
+            if (Area == "Todas" && mes == "Todos")
+            {
+                query = "SELECT QuejaCliente, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año GROUP BY QuejaCliente";
+            }
+            else if (Area != "Todas" && mes == "Todos")
+            {
+                query = "SELECT QuejaCliente, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año GROUP BY QuejaCliente";
+            }
+            else if (Area != "Todas" && mes != "Todos")
+            {
+                query = "SELECT QuejaCliente, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año and Mes = @Mes GROUP BY QuejaCliente";
+            }
+            else if (Area == "Todas" && mes != "Todos")
+            {
+                query = "SELECT QuejaCliente, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año AND Mes = @Mes GROUP BY QuejaCliente";
+            }
+
+
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        if (Area == "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        else if (Area == "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                ErrorQueja error = new ErrorQueja();
+                                error.Queja = reader["QuejaCliente"].ToString();
+                                int totalErrores = Convert.ToInt32(reader["TotalErrores"]);
+                                double porcentaje = (double)(totalErrores) / 15 * 100;
+                                error.Errores = totalErrores.ToString();
+                                error.Porcentaje = porcentaje.ToString();
+                                erroresPorUsuario.Add(error);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+
+            return erroresPorUsuario;
+        }
+
+        public List<ErrorTipo> ObtenerReprocesoTipoErrorArea(string Area, string mes, string año)
+        {
+            List<ErrorTipo> erroresPorUsuario = new List<ErrorTipo>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
+
+            if (Area == "Todas" && mes == "Todos")
+            {
+                query = "SELECT TipoError, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año GROUP BY TipoError";
+            }
+            else if (Area != "Todas" && mes == "Todos")
+            {
+                query = "SELECT TipoError, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año GROUP BY TipoError";
+            }
+            else if (Area != "Todas" && mes != "Todos")
+            {
+                query = "SELECT TipoError, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año and Mes = @Mes GROUP BY TipoError";
+            }
+            else if (Area == "Todas" && mes != "Todos")
+            {
+                query = "SELECT TipoError, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año AND Mes = @Mes GROUP BY TipoError";
+            }
+
+            
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        if (Area == "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                        }
+                        else if (Area != "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        else if (Area == "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Año", año);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+
                         using (OleDbDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -564,7 +1262,72 @@ namespace Qualitas.Models
             return erroresPorUsuario;
         }
 
-        public void EditarReproceso(
+        public List<ErrorMes> ObtenerReprocesoErroresArea(string Area, string año)
+        {
+            List<ErrorMes> erroresPorUsuario = new List<ErrorMes>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
+
+
+            if (Area == "Todas")
+            {
+                query = "SELECT Area,Mes, COUNT(*) AS TotalErrores FROM Reproceso WHERE Año = @Año GROUP BY Area, Mes";
+            }
+            else
+            {
+                query = "SELECT Area,Mes, COUNT(*) AS TotalErrores FROM Reproceso WHERE Area = @Area AND Año = @Año GROUP BY Area, Mes";
+            }
+           
+
+            try
+            {
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        if (Area != "Todas")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                        }
+                        command.Parameters.AddWithValue("@Año", año);
+                        using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                ErrorMes error = new ErrorMes();
+                                error.Mes = reader["Mes"].ToString();
+                                error.Area = reader["Area"].ToString();
+                                int totalErrores = Convert.ToInt32(reader["TotalErrores"]);
+                                double porcentaje = (double)(totalErrores) / 15 * 100;
+                                error.Errores = totalErrores.ToString();
+                                error.Porcentaje = porcentaje.ToString();
+                                erroresPorUsuario.Add(error);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al obtener los datos de la tabla reprocesos:", ex);
+                throw;
+            }
+
+            return erroresPorUsuario;
+        }
+
+
+        public void EditarReprocesos(
             int id,
             string fechaOp,
             string fechaReg,
@@ -582,7 +1345,9 @@ namespace Qualitas.Models
             string descripcion,
             string area,
             string tipoError, 
-            string mes)
+            string mes,
+            string año,
+            string clientequeja)
         {
             
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
@@ -593,7 +1358,7 @@ namespace Qualitas.Models
             // Consulta SQL para la actualización
             string query = "UPDATE Reproceso SET FechaOp = @FechaOp, FechaReg = @FechaReg, Consecutivo = @Consecutivo, Nit = @Nit, Moneda = @Moneda, " +
                            "Valor = @Valor, Cliente = @Cliente, ProdEvento = @ProdEvento, Responsable = @Responsable, UsuarioReproceso = @UsuarioReproceso, " +
-                           "Perdida = @Perdida, Impacto = @Impacto, Causa = @Causa, Descripcion = @Descripcion, Area = @Area, TipoError = @TipoError, Mes = @Mes  " +
+                           "Perdida = @Perdida, Impacto = @Impacto, Causa = @Causa, Descripcion = @Descripcion, Area = @Area, TipoError = @TipoError, Mes = @Mes, Año = @Año, QuejaCliente = @QuejaCliente  " +
                            "WHERE Id = @Id";
 
             try
@@ -622,9 +1387,10 @@ namespace Qualitas.Models
                         command.Parameters.AddWithValue("@Descripcion", descripcion);
                         command.Parameters.AddWithValue("@Area", area);
                         command.Parameters.AddWithValue("@TipoError", tipoError);
-                        command.Parameters.AddWithValue("@Id", id);
                         command.Parameters.AddWithValue("@Mes", mes);
-
+                        command.Parameters.AddWithValue("@Año", año);
+                        command.Parameters.AddWithValue("@QuejaCliente", clientequeja);
+                        command.Parameters.AddWithValue("@Id", id);
                         // Ejecutar la consulta de actualización
                         command.ExecuteNonQuery();
                     }
@@ -643,82 +1409,26 @@ namespace Qualitas.Models
                 throw;
             }
         }
-        public List<Causas> GetCausasVeri()
+        public List<TipoError> GetTipos(string area)
         {
-            List<Causas> causas = new List<Causas>();
+            List<TipoError> causas = new List<TipoError>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
 
-            string query = "SELECT * FROM Causas WHERE tipoerror ='Verificacion'";
+            string query = "SELECT DISTINCT tipoerror FROM Causas WHERE area = @area";
             using (OleDbConnection connection = new OleDbConnection(connectionString))
             {
                 OleDbCommand command = new OleDbCommand(query, connection);
+                command.Parameters.AddWithValue("@area", area);
                 connection.Open();
                 using (OleDbDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        causas.Add(new Causas
+                        causas.Add(new TipoError
                         {
-                            Causa = reader["causas"].ToString(),
-                            TipoError = reader["tipoerror"].ToString()
-                        });
-                    }
-                }
-            }
-
-
-            return causas;
-        }
-        public List<Causas> GetCausasAigna()
-        {
-            List<Causas> causas = new List<Causas>();
-            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
-            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
-            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
-
-            string query = "SELECT * FROM Causas WHERE tipoerror ='Asignacion'";
-            using (OleDbConnection connection = new OleDbConnection(connectionString))
-            {
-                OleDbCommand command = new OleDbCommand(query, connection);
-                connection.Open();
-                using (OleDbDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        causas.Add(new Causas
-                        {
-                            Causa = reader["causas"].ToString(),
-                            TipoError = reader["tipoerror"].ToString()
-                        });
-                    }
-                }
-            }
-
-
-            return causas;
-        }
-        public List<Causas> GetCausasAproba()
-        {
-            List<Causas> causas = new List<Causas>();
-            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
-            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
-            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
-
-            string query = "SELECT * FROM Causas WHERE tipoerror ='Aprobacion'";
-            using (OleDbConnection connection = new OleDbConnection(connectionString))
-            {
-                OleDbCommand command = new OleDbCommand(query, connection);
-                connection.Open();
-                using (OleDbDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        causas.Add(new Causas
-                        {
-                            Causa = reader["causas"].ToString(),
-                            TipoError = reader["tipoerror"].ToString()
+                            Tipo = reader["tipoerror"].ToString()
                         });
                     }
                 }
@@ -728,14 +1438,257 @@ namespace Qualitas.Models
             return causas;
         }
 
-        public List<Causas> GetCausasCumpli()
+        public List<Causas> GetTiposCausas(string tipoerror, string area)
         {
             List<Causas> causas = new List<Causas>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
 
-            string query = "SELECT * FROM Causas WHERE tipoerror ='Cumplimiento'";
+            try
+            {
+                string query = "SELECT * FROM Causas WHERE tipoerror = @tipoerror AND area = @area";
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    OleDbCommand command = new OleDbCommand(query, connection);
+                    command.Parameters.AddWithValue("@tipoerror", tipoerror);
+                    command.Parameters.AddWithValue("@area", area);
+                    connection.Open();
+                    using (OleDbDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            causas.Add(new Causas
+                            {
+                                Causa = reader["causas"].ToString(),
+                                Area = reader["area"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al obtener tipos de causas: " + ex.Message);
+                // Maneja el error según tus necesidades (registra, notifica, etc.)
+            }
+
+            return causas;
+        }
+
+        public List<CausasTotal> GetCausas()
+        {
+            List<CausasTotal> causas = new List<CausasTotal>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            try
+            {
+                string query = "SELECT * FROM Causas";
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    OleDbCommand command = new OleDbCommand(query, connection);
+                    connection.Open();
+                    using (OleDbDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            causas.Add(new CausasTotal
+                            {
+                                Id = reader["Id"].ToString(),
+                                Area = reader["area"].ToString(),
+                                Tipo = reader["tipoerror"].ToString(),
+                                Causa = reader["causas"].ToString()
+                            }); ;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al obtener tipos de causas: " + ex.Message);
+                // Maneja el error según tus necesidades (registra, notifica, etc.)
+            }
+
+            return causas;
+        }
+
+
+        public List<Causas> GetTiposCausasArea(string areas)
+        {
+            List<Causas> causas = new List<Causas>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
+            try
+            {
+                if (areas == "Todas")
+                {
+                    query = "SELECT DISTINCT Causa FROM Reproceso";
+                }
+                else if (areas != "Todas")
+                {
+                    query = "SELECT DISTINCT Causa FROM Reproceso WHERE Area = @Area";
+                }
+               
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    OleDbCommand command = new OleDbCommand(query, connection);
+
+                    if (areas != "Todas")
+                    {
+                        command.Parameters.AddWithValue("@Area", areas);
+                    }
+                    
+                    connection.Open();
+                    using (OleDbDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            causas.Add(new Causas
+                            {
+                                Causa = reader["Causa"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al obtener tipos de causas: " + ex.Message);
+                // Maneja el error según tus necesidades (registra, notifica, etc.)
+            }
+
+            return causas;
+        }
+
+        public List<CausasTotal> GetTiposCausasUsuarios(string usuario)
+        {
+            List<CausasTotal> causas = new List<CausasTotal>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
+            try
+            {
+                
+                query = "SELECT DISTINCT Causa FROM Reproceso WHERE Responsable = @Responsable";
+                
+
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    OleDbCommand command = new OleDbCommand(query, connection);
+
+                 
+                   command.Parameters.AddWithValue("@Responsable", usuario);
+                   
+
+                    connection.Open();
+                    using (OleDbDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            causas.Add(new CausasTotal
+                            {
+                                Causa = reader["Causa"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al obtener tipos de causas: " + ex.Message);
+                // Maneja el error según tus necesidades (registra, notifica, etc.)
+            }
+
+            return causas;
+        }
+
+        public DataTable GetProdEvento(string producto, string evento)
+        {
+            DataTable dataTable = new DataTable();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            try
+            {
+                string query = "SELECT * FROM Producto WHERE producto = @producto AND evento = @evento";
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    OleDbCommand command = new OleDbCommand(query, connection);
+                    command.Parameters.AddWithValue("@producto", producto);
+                    command.Parameters.AddWithValue("@evento", evento);
+                    connection.Open();
+
+                    using (OleDbDataReader reader = command.ExecuteReader())
+                    {
+                        dataTable.Load(reader);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al obtener productos de evento: " + ex.Message);
+                // Maneja el error según tus necesidades (registra, notifica, etc.)
+            }
+
+            return dataTable;
+        }
+
+
+        public string GetCorreoConfirma(string fechaInicio, string fechaFin)
+        {
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            string query = "SELECT * FROM CorreosEnvio WHERE fecha_env BETWEEN @FechaInicio AND @FechaFin ";
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                OleDbCommand command = new OleDbCommand(query, connection);
+                command.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+                command.Parameters.AddWithValue("@fechaFin", fechaFin);
+
+                connection.Open();
+                using (OleDbDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        int recordCount = 0;
+
+                        while (reader.Read())
+                        {
+                            recordCount++;
+                        }
+
+                        if (recordCount > 0)
+                        {
+                            return "Enviado";
+                        }
+                    }
+                    else
+                    {
+                        return "OK";
+                    }
+                }
+            }
+
+            return "Error";
+
+        }
+
+        public List<Moneda> GetMonedas()
+        {
+            List<Moneda> mon = new List<Moneda>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+            string query = "SELECT * FROM Moneda";
             using (OleDbConnection connection = new OleDbConnection(connectionString))
             {
                 OleDbCommand command = new OleDbCommand(query, connection);
@@ -744,57 +1697,73 @@ namespace Qualitas.Models
                 {
                     while (reader.Read())
                     {
-                        causas.Add(new Causas
+                        mon.Add(new Moneda
                         {
-                            Causa = reader["causas"].ToString(),
-                            TipoError = reader["tipoerror"].ToString()
+                            Monedas = reader["moneda"].ToString(),
+                            Ref = reader["etiqueta"].ToString()
                         });
                     }
                 }
             }
 
 
-            return causas;
+            return mon;
         }
 
-        public List<Causas> GetCausasOrienta()
+        public List<Años> GetAños()
         {
-            List<Causas> causas = new List<Causas>();
-            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
-            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
-            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
-
-            string query = "SELECT * FROM Causas WHERE tipoerror ='Orientacion'";
-            using (OleDbConnection connection = new OleDbConnection(connectionString))
-            {
-                OleDbCommand command = new OleDbCommand(query, connection);
-                connection.Open();
-                using (OleDbDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        causas.Add(new Causas
-                        {
-                            Causa = reader["causas"].ToString(),
-                            TipoError = reader["tipoerror"].ToString()
-                        });
-                    }
-                }
-            }
-
-
-            return causas;
-        }
-
-
-        public List<Reproceso> ObtenerReprocesosPerdidaEconomica()
-        {
-            List<Reproceso> reprocesos = new List<Reproceso>();
+            List<Años> mon = new List<Años>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
 
-            string query = "SELECT * FROM Reproceso WHERE Perdida ='Si'";
+            string query = "SELECT DISTINCT Año FROM Reproceso";
+            using (OleDbConnection connection = new OleDbConnection(connectionString))
+            {
+                OleDbCommand command = new OleDbCommand(query, connection);
+                connection.Open();
+                using (OleDbDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        mon.Add(new Años
+                        {
+                            Año = reader["Año"].ToString()
+                        });
+                    }
+                }
+            }
+
+
+            return mon;
+        }
+
+
+        public List<ReprocesoPerdida> ObtenerReprocesosPerdidaEconomica(string Area, string mes)
+        {
+            List<ReprocesoPerdida> reprocesos = new List<ReprocesoPerdida>();
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
+
+            if (Area == "Todas" && mes == "Todos")
+            {
+                query = "SELECT * FROM Reproceso WHERE Perdida ='Si' ";
+            }
+            else if (Area != "Todas" && mes == "Todos")
+            {
+                query = "SELECT * FROM Reproceso WHERE Perdida ='Si' AND Area = @Area";
+            }
+            else if (Area != "Todas" && mes != "Todos")
+            {
+                query = "SELECT * FROM Reproceso WHERE Perdida ='Si' AND Area = @Area AND Mes = @Mes";
+            }
+            else if (Area == "Todas" && mes != "Todos")
+            {
+                query = "SELECT * FROM Reproceso WHERE Perdida ='Si' AND Mes = @Mes";
+            }
+
 
             try
             {
@@ -803,11 +1772,30 @@ namespace Qualitas.Models
                     connection.Open();
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
-                        using (OleDbDataReader reader = command.ExecuteReader())
+                        if (Area == "Todas" && mes == "Todos")
                         {
+
+                        }
+                        else if (Area != "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                        }
+                        else if (Area != "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        else if (Area == "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Mes", mes);
+
+                        }
+                       using (OleDbDataReader reader = command.ExecuteReader())
+                        {
+
                             while (reader.Read())
                             {
-                                Reproceso reproceso = new Reproceso();
+                                ReprocesoPerdida reproceso = new ReprocesoPerdida();
                                 reproceso.Id = Convert.ToInt32(reader["Id"].ToString());
                                 reproceso.FechaOp = reader["FechaOp"].ToString();
                                 reproceso.FechaReg = reader["FechaReg"].ToString();
@@ -826,6 +1814,8 @@ namespace Qualitas.Models
                                 reproceso.Area = reader["Area"].ToString();
                                 reproceso.TipoError = reader["TipoError"].ToString();
                                 reproceso.Mes = reader["Mes"].ToString();
+                                reproceso.Año = reader["Año"].ToString();
+                                reproceso.Queja = reader["QuejaCliente"].ToString();
                                 reprocesos.Add(reproceso);
                             }
                         }
@@ -848,14 +1838,31 @@ namespace Qualitas.Models
             return reprocesos;
         }
 
-        public List<Reproceso> ObtenerReprocesosPerdidaNoEconomica()
+        public List<ReprocesoPerdida> ObtenerReprocesosPerdidaNoEconomica(string Area, string mes)
         {
-            List<Reproceso> reprocesos = new List<Reproceso>();
+            List<ReprocesoPerdida> reprocesos = new List<ReprocesoPerdida>();
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
             string databasePath = Path.Combine(dbFolderPath, "Reprocesos.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+            string query = null;
 
-            string query = "SELECT * FROM Reproceso WHERE Perdida ='No'";
+            if (Area == "Todas" && mes == "Todos")
+            {
+                query = "SELECT * FROM Reproceso WHERE Perdida ='No' ";
+            }
+            else if (Area != "Todas" && mes == "Todos")
+            {
+                query = "SELECT * FROM Reproceso WHERE Perdida ='No' AND Area = @Area";
+            }
+            else if (Area != "Todas" && mes != "Todos")
+            {
+                query = "SELECT * FROM Reproceso WHERE Perdida ='No' AND Area = @Area AND Mes = @Mes";
+            }
+            else if (Area == "Todas" && mes != "Todos")
+            {
+                query = "SELECT * FROM Reproceso WHERE Perdida ='No' AND Mes = @Mes";
+            }
+
 
             try
             {
@@ -864,11 +1871,29 @@ namespace Qualitas.Models
                     connection.Open();
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
+                        if (Area == "Todas" && mes == "Todos")
+                        {
+
+                        }
+                        else if (Area != "Todas" && mes == "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                        }
+                        else if (Area != "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Area", Area);
+                            command.Parameters.AddWithValue("@Mes", mes);
+                        }
+                        else if (Area == "Todas" && mes != "Todos")
+                        {
+                            command.Parameters.AddWithValue("@Mes", mes);
+
+                        }
                         using (OleDbDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                Reproceso reproceso = new Reproceso();
+                                ReprocesoPerdida reproceso = new ReprocesoPerdida();
                                 reproceso.Id = Convert.ToInt32(reader["Id"].ToString());
                                 reproceso.FechaOp = reader["FechaOp"].ToString();
                                 reproceso.FechaReg = reader["FechaReg"].ToString();
@@ -887,6 +1912,8 @@ namespace Qualitas.Models
                                 reproceso.Area = reader["Area"].ToString();
                                 reproceso.TipoError = reader["TipoError"].ToString();
                                 reproceso.Mes = reader["Mes"].ToString();
+                                reproceso.Año = reader["Año"].ToString();
+                                reproceso.Queja = reader["QuejaCliente"].ToString();
                                 reprocesos.Add(reproceso);
                             }
                         }
@@ -912,9 +1939,9 @@ namespace Qualitas.Models
         public void EditarUsuario(
             int id,
             string usuario,
-            string perfil,
             string nombre,
-            string correo)
+            string correo,
+            string perfil)
         {
 
             string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
@@ -923,7 +1950,7 @@ namespace Qualitas.Models
 
 
             // Consulta SQL para la actualización
-            string query = "UPDATE Usuarios SET Usuario = @Usuario, Nombre = @Nombre, Correo = @Correo, Perfil = @Perfil "+
+            string query = "UPDATE Persona SET Usuario = @Usuario, Nombre = @Nombre, Correo = @Correo, Perfil = @Perfil "+
                            "WHERE Id = @Id";
 
             try
@@ -936,12 +1963,62 @@ namespace Qualitas.Models
                     using (OleDbCommand command = new OleDbCommand(query, connection))
                     {
                         // Asignar parámetros
+
                         command.Parameters.AddWithValue("@Usuario", usuario);
-                        command.Parameters.AddWithValue("@Perfil", perfil);
                         command.Parameters.AddWithValue("@Nombre", nombre);
                         command.Parameters.AddWithValue("@Correo", correo);
+                        command.Parameters.AddWithValue("@Perfil", perfil);
                         command.Parameters.AddWithValue("@Id", id);
+                        // Ejecutar la consulta de actualización
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al actualizar el registro en la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al actualizar el registro en la tabla reprocesos:", ex);
+                throw;
+            }
+        }
 
+        public void EditarCausa(
+            int id,
+            string area,
+            string tipoerror,
+            string causas)
+        {
+
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+
+            // Consulta SQL para la actualización
+            string query = "UPDATE Causas SET area = @area, tipoerror = @tipoerror, causas = @causas " +
+                           "WHERE Id = @Id";
+
+            try
+            {
+                // Crear conexión y comando
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        // Asignar parámetros
+
+                        command.Parameters.AddWithValue("@area", area);
+                        command.Parameters.AddWithValue("@tipoerror", tipoerror);
+                        command.Parameters.AddWithValue("@causas", causas);
+                        command.Parameters.AddWithValue("@Id", id);
                         // Ejecutar la consulta de actualización
                         command.ExecuteNonQuery();
                     }
@@ -1011,6 +2088,56 @@ namespace Qualitas.Models
                 throw;
             }
         }
+
+        public void InsertarCausa(
+           string area,
+           string tipoerror,
+           string causas)
+        {
+
+            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
+            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
+            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
+
+
+            // Consulta SQL para la actualización
+            string query = "INSERT INTO Causas (area, tipoerror, causas) VALUES (@area, @tipoerror, @causas)";
+
+
+            try
+            {
+                // Crear conexión y comando
+                using (OleDbConnection connection = new OleDbConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    {
+                        // Asignar parámetros
+                        command.Parameters.AddWithValue("@area", area);
+                        command.Parameters.AddWithValue("@tipoerror", tipoerror);
+                        command.Parameters.AddWithValue("@causas", causas);
+
+                        // Ejecutar la consulta de actualización
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                // Manejar excepciones de base de datos
+                Console.WriteLine("Error al actualizar el registro en la tabla reprocesos:", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Manejar otras excepciones
+                Console.WriteLine("Error desconocido al actualizar el registro en la tabla reprocesos:", ex);
+                throw;
+            }
+        }
+
+
         public List<Usuarios> ObtenerUsuarios()
         {
             List<Usuarios> usuarios = new List<Usuarios>();
@@ -1018,7 +2145,7 @@ namespace Qualitas.Models
             string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
             string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
 
-            string query = "SELECT * FROM Usuarios";
+            string query = "SELECT * FROM Persona";
             try
             {
                 using (OleDbConnection connection = new OleDbConnection(connectionString))
