@@ -1,4 +1,4 @@
-  <script>
+
         $(document).ready(function () {
             // Inicializa la tabla vacía
             $('#tbllist').DataTable({
@@ -85,4 +85,4 @@
                 }
             });
         });
-    </script>
+    
