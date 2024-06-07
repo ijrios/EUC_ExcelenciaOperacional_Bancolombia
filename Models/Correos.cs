@@ -4,6 +4,8 @@ using System.Data.OleDb;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Web;
 using Excel = Microsoft.Office.Interop.Excel;
 using Outlook = Microsoft.Office.Interop.Outlook;
@@ -12,7 +14,7 @@ namespace Qualitas.Models
 {
     public class Correos
     {
-        public void EnviarCorreo(string correo, string nombreasesor, string errores) { 
+        public void EnviarCorreo(string correo, string nombreasesor, string errores, string fechaini, string fechafin) { 
             Outlook.Application outlook = new Outlook.Application();
             Outlook.MailItem mensaje = outlook.CreateItem(Outlook.OlItemType.olMailItem);
             Outlook.Accounts cuentas;
@@ -28,7 +30,7 @@ namespace Qualitas.Models
             foreach (Outlook.Account cuentatmp in cuentas)
             {
 
-                if (cuentatmp.SmtpAddress == "jaramos@bancolombia.com.co" || cuentatmp.SmtpAddress == "joarios@bancolombia.com.co")
+                if (cuentatmp.SmtpAddress == "GEROPINT@BANCOLOMBIA.COM.CO" || cuentatmp.SmtpAddress == "joarios@bancolombia.com.co")
                 {
                     string asunto = "";
                     string cuerpo = "";
@@ -51,70 +53,203 @@ namespace Qualitas.Models
                         }
                     }
 
-
-                    cuerpo = $"<font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Hola {nombreasesor},</font><br><br>" +
-                                  $"<font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Te invitamos a revisar la página de excelencia operacional; en la última semana tienes {errores} nuevos reprocesos reportados. En caso de tener alguna duda con la información por favor consulta con tu coordinador o jefe inmediato." +
-                                  $"<br><br>Estamos seguros que la revisión oportuna de tus novedades de calidad, te ayudan a generar planes de acción transformadores.</font>" +
-                                  $"<br><br><font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Contamos contigo,</font>" +
-                                 $"<br><br><img src='data:image/png;base64,{imagenBase64}' />";
-                    mensaje.To = correo;
-                  
-                    mensaje.HTMLBody = cuerpo;
-                    mensaje.CC = "sebmoral@bancolombia.com.co;kjpadill@bancolombia.com.co";
-                    mensaje.Subject = asunto;
-                    mensaje.Sensitivity = Outlook.OlSensitivity.olConfidential;
-                    mensaje.Display();
-                    mensaje.SendUsingAccount = cuentatmp;
-                    mensaje.Send();
-                    Console.WriteLine("Correo enviado");
-                    InsertarRepro(Hoy.ToString("yyyyMMdd"),1, DiaActualSemana.ToString());
-
-                }
-            }
-        }
-
-
-        public void InsertarRepro(string fecha, int bit, string dia)
-        {
-            string dbFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DB");
-            string databasePath = Path.Combine(dbFolderPath, "Administracion.accdb");
-            string connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={databasePath};Persist Security Info=False;";
-
-            string query = "INSERT INTO CorreosEnvio (bit_env, fecha_env, dia_env) " +
-                       "VALUES (@bit_env, @fecha_env, @dia_env)";
-            try
-            {
-                using (OleDbConnection connection = new OleDbConnection(connectionString))
-                {
-                    connection.Open();
-
-                    using (OleDbCommand command = new OleDbCommand(query, connection))
+                    if (errores == "1")
                     {
-                        // Agregar parámetros para evitar la inyección SQL
-                        command.Parameters.AddWithValue("@bit_env", Convert.ToInt32(bit));
-                        command.Parameters.AddWithValue("@fecha_env", fecha);
-                        command.Parameters.AddWithValue("@dia_env", dia);
-
-                        // Ejecutar la consulta de inserción
-                        command.ExecuteNonQuery();
+                        cuerpo = $"<font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Hola {nombreasesor},</font><br><br>" +
+                                 $"<font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Te invitamos a revisar la página de excelencia operacional; en la última semana tienes {errores} nuevo reproceso reportado. En caso de tener alguna duda con la información por favor consulta con tu coordinador o jefe inmediato." +
+                                 $"<br><br>Estamos seguros que la revisión oportuna de tus novedades de calidad, te ayudan a generar planes de acción transformadores.</font>" +
+                                 $"<br><br><font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Contamos contigo,</font>" +
+                                $"<br><br><img src='data:image/png;base64,{imagenBase64}' />";
                     }
+                    else
+                    {
+                        cuerpo = $"<font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Hola {nombreasesor},</font><br><br>" +
+                                 $"<font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Te invitamos a revisar la página de excelencia operacional; en la última semana tienes {errores} nuevos reprocesos reportados. En caso de tener alguna duda con la información por favor consulta con tu coordinador o jefe inmediato." +
+                                 $"<br><br>Estamos seguros que la revisión oportuna de tus novedades de calidad, te ayudan a generar planes de acción transformadores.</font>" +
+                                 $"<br><br><font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>Contamos contigo,</font>" +
+                                $"<br><br><img src='data:image/png;base64,{imagenBase64}' />";
+                    }
+
+
+                    Outlook.Application outlookApp = null;
+                    Outlook._NameSpace outlookNamespace = null;
+
+                    try
+                    {
+                        // Intenta obtener la instancia actual de Outlook
+                        outlookApp = Marshal.GetActiveObject("Outlook.Application") as Outlook.Application;
+                    }
+                    catch (Exception)
+                    {
+                        // Si no se puede obtener la instancia, crea una nueva
+                        outlookApp = new Outlook.Application();
+                    }
+
+                    // Obtiene el namespace MAPI
+                    outlookNamespace = outlookApp.GetNamespace("MAPI");
+                    outlookNamespace.Logon("", "", Missing.Value, Missing.Value);
+
+                    // Verifica si la bandeja de correos (Outlook) está abierta
+                    if (outlookApp != null && outlookNamespace != null)
+                    {
+                        // Verifica si la cuenta especificada está disponible
+                        Outlook.Accounts accounts = outlookNamespace.Accounts;
+                        Outlook.Account cuenta = null;
+                        foreach (Outlook.Account acc in accounts)
+                        {
+                            if (acc.SmtpAddress == "geropint@bancolombia.com.co" || acc.SmtpAddress == "joarios@bancolombia.com.co")
+                            {
+                                cuenta = acc;
+                                break;
+                            }
+                        }
+
+                        if (cuenta != null)
+                        {
+                            mensaje.To = correo;
+
+                            mensaje.HTMLBody = cuerpo;
+                            mensaje.Subject = asunto;
+                            mensaje.Sensitivity = Outlook.OlSensitivity.olConfidential;
+                            mensaje.Display();
+                            mensaje.SendUsingAccount = cuentatmp;
+                            mensaje.Send();
+                            Console.WriteLine("Correo enviado");
+                          
+                        }
+                        else
+                        {
+                            // La cuenta especificada no está disponible
+                            Console.WriteLine("La cuenta de correo especificada no está disponible.");
+                        }
+                    }
+                    else
+                    {
+                        // Outlook no está abierto
+                        Console.WriteLine("Outlook no está abierto.");
+                    }
+
+                  
+
                 }
             }
-            catch (OleDbException ex)
+        }
+
+
+        public void EnviarCorreoDuo(string correo, string nombreasesor, string fechaini, string fechafin)
+        {
+            Outlook.Application outlook = new Outlook.Application();
+            Outlook.MailItem mensaje = outlook.CreateItem(Outlook.OlItemType.olMailItem);
+            Outlook.Accounts cuentas;
+            DateTime fecha = DateTime.Now;
+
+            DateTime Hoy = DateTime.Now;
+            //DateTime Hoy = Hoyy.AddDays(-4);
+            var DiaActualSemana = Hoy.DayOfWeek;
+
+
+            cuentas = outlook.Session.Accounts;
+
+            foreach (Outlook.Account cuentatmp in cuentas)
             {
-                // Manejar excepciones de base de datos
-                Console.WriteLine("Error al insertar datos en la tabla reprocesos:", ex);
-                // Puedes lanzar la excepción nuevamente para manejarla en el nivel superior
-                throw;
-            }
-            catch (Exception ex)
-            {
-                // Manejar otras excepciones
-                Console.WriteLine("Error desconocido al insertar datos en la tabla reprocesos:", ex);
-                // Puedes lanzar la excepción nuevamente para manejarla en el nivel superior
-                throw;
+
+                if (cuentatmp.SmtpAddress == "GEROPINT@BANCOLOMBIA.COM.CO" || cuentatmp.SmtpAddress == "joarios@bancolombia.com.co")
+                {
+                    string asunto = "";
+                    string cuerpo = "";
+
+
+                    asunto = "¡Felicitaciones! Estás brillando.";
+
+                    //Inicio cuerpo del correo.
+                    string firma = $@"C:\Users\{Environment.UserName}\Documents\Productividades\firma.png";
+
+                    // Convertir la imagen a base64
+                    string imagenBase64 = "";
+                    using (Image imagen = Image.FromFile(firma))
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            imagen.Save(ms, imagen.RawFormat);
+                            byte[] imagenBytes = ms.ToArray();
+                            imagenBase64 = Convert.ToBase64String(imagenBytes);
+                        }
+                    }
+
+                   
+                   cuerpo = $"<font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>¡Felicitaciones! {nombreasesor},</font><br><br>" +
+                                 $"<font color='#7D7C7C' face='CIBFont Sans' style='font-size:15px;'>En la última semana brillaste por tu calidad, no cuentas con reprocesos. Gracias por tu compromiso; eres la muestra de que juntos podemos lograr resultados extraordinarios." +
+                                 $"<br><br>Continúa luciéndote con tu excelencia operacional.</font>" +
+                                $"<br><br><img src='data:image/png;base64,{imagenBase64}' />";
+                   
+
+
+                    Outlook.Application outlookApp = null;
+                    Outlook._NameSpace outlookNamespace = null;
+
+                    try
+                    {
+                        // Intenta obtener la instancia actual de Outlook
+                        outlookApp = Marshal.GetActiveObject("Outlook.Application") as Outlook.Application;
+                    }
+                    catch (Exception)
+                    {
+                        // Si no se puede obtener la instancia, crea una nueva
+                        outlookApp = new Outlook.Application();
+                    }
+
+                    // Obtiene el namespace MAPI
+                    outlookNamespace = outlookApp.GetNamespace("MAPI");
+                    outlookNamespace.Logon("", "", Missing.Value, Missing.Value);
+
+                    // Verifica si la bandeja de correos (Outlook) está abierta
+                    if (outlookApp != null && outlookNamespace != null)
+                    {
+                        // Verifica si la cuenta especificada está disponible
+                        Outlook.Accounts accounts = outlookNamespace.Accounts;
+                        Outlook.Account cuenta = null;
+                        foreach (Outlook.Account acc in accounts)
+                        {
+                            if (acc.SmtpAddress == "geropint@bancolombia.com.co" || acc.SmtpAddress == "joarios@bancolombia.com.co")
+                            {
+                                cuenta = acc;
+                                break;
+                            }
+                        }
+
+                        if (cuenta != null)
+                        {
+                            mensaje.To = correo;
+
+                            mensaje.HTMLBody = cuerpo;
+                            mensaje.Subject = asunto;
+                            mensaje.Sensitivity = Outlook.OlSensitivity.olConfidential;
+                            mensaje.Display();
+                            mensaje.SendUsingAccount = cuentatmp;
+                            mensaje.Send();
+                            Console.WriteLine("Correo enviado");
+
+                        }
+                        else
+                        {
+                            // La cuenta especificada no está disponible
+                            Console.WriteLine("La cuenta de correo especificada no está disponible.");
+                        }
+                    }
+                    else
+                    {
+                        // Outlook no está abierto
+                        Console.WriteLine("Outlook no está abierto.");
+                    }
+
+
+
+                }
             }
         }
+
+
+
 
 
     }
